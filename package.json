@@ -1,0 +1,100 @@
+{
+  "name": "audio-video-merger",
+  "productName": "audio-video-merger",
+  "version": "1.0.0",
+  "description": "My Electron application description",
+  "main": ".webpack/main",
+  "scripts": {
+    "start": "electron-forge start",
+    "package": "electron-forge package",
+    "make": "electron-forge make",
+    "publish": "electron-forge publish",
+    "lint": "eslint --ext .ts .",
+    "rebuild": "electron-rebuild -f -w ffmpeg-static ffprobe-static"
+  },
+  "keywords": [],
+  "author": {
+    "name": "kapoko",
+    "email": "kasper.koman@gmail.com"
+  },
+  "license": "MIT",
+  "build": {},
+  "config": {
+    "forge": {
+      "packagerConfig": {},
+      "makers": [
+        {
+          "name": "@electron-forge/maker-squirrel",
+          "config": {
+            "name": "audio_video_merger"
+          }
+        },
+        {
+          "name": "@electron-forge/maker-zip",
+          "platforms": [
+            "darwin"
+          ]
+        },
+        {
+          "name": "@electron-forge/maker-deb",
+          "config": {}
+        },
+        {
+          "name": "@electron-forge/maker-rpm",
+          "config": {}
+        }
+      ],
+      "plugins": [
+        [
+          "@electron-forge/plugin-webpack",
+          {
+            "mainConfig": "./webpack.main.config.js",
+            "renderer": {
+              "config": "./webpack.renderer.config.js",
+              "entryPoints": [
+                {
+                  "html": "./src/index.html",
+                  "js": "./src/renderer.ts",
+                  "name": "main_window"
+                }
+              ]
+            }
+          }
+        ]
+      ]
+    }
+  },
+  "devDependencies": {
+    "@electron-forge/cli": "^6.0.0-beta.53",
+    "@electron-forge/maker-deb": "^6.0.0-beta.53",
+    "@electron-forge/maker-rpm": "^6.0.0-beta.53",
+    "@electron-forge/maker-squirrel": "^6.0.0-beta.53",
+    "@electron-forge/maker-zip": "^6.0.0-beta.53",
+    "@electron-forge/plugin-auto-unpack-natives": "^6.0.0-beta.53",
+    "@electron-forge/plugin-webpack": "^6.0.0-beta.53",
+    "@marshallofsound/webpack-asset-relocator-loader": "^0.5.0",
+    "@typescript-eslint/eslint-plugin": "^3.10.1",
+    "@typescript-eslint/parser": "^3.10.1",
+    "copy-webpack-plugin": "^6.2.0",
+    "css-loader": "^4.3.0",
+    "electron": "10.1.3",
+    "electron-rebuild": "^2.2.0",
+    "eslint": "^7.10.0",
+    "eslint-plugin-import": "^2.22.1",
+    "fork-ts-checker-webpack-plugin": "^5.2.0",
+    "node-loader": "^1.0.1",
+    "sass": "^1.27.0",
+    "sass-loader": "^10.0.2",
+    "style-loader": "^1.3.0",
+    "ts-loader": "^8.0.4",
+    "typescript": "^4.0.3",
+    "webpack-permissions-plugin": "^1.0.7"
+  },
+  "dependencies": {
+    "@types/fluent-ffmpeg": "^2.1.16",
+    "electron-squirrel-startup": "^1.0.0",
+    "ffmpeg-static": "^4.2.7",
+    "ffprobe-static": "^3.0.0",
+    "fluent-ffmpeg": "^2.1.2"
+  }
+}
