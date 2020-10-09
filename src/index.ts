@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain } from 'electron';
+import { app, BrowserWindow, ipcMain, dialog } from 'electron';
 declare const MAIN_WINDOW_WEBPACK_ENTRY: any;
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
@@ -6,13 +6,17 @@ if (require('electron-squirrel-startup')) { // eslint-disable-line global-requir
   app.quit();
 }
 
+let mainWindow: BrowserWindow;
+
 const createWindow = (): void => {
   // Create the browser window.
-  const mainWindow = new BrowserWindow({
+  mainWindow = new BrowserWindow({
     height: 480,
     width: 640,
+    resizable: false,
     webPreferences: {
-      nodeIntegration: true
+      nodeIntegration: true,
+      devTools: false
     }
   });
 
@@ -47,13 +51,10 @@ app.on('activate', () => {
 
 // In this file you can include the rest of your app's specific main process
 // code. You can also put them in separate files and import them here.
-
-//require the ffmpeg package so we can use ffmpeg using JS
-// const ffmpeg = require('fluent-ffmpeg');
 import * as ffmpeg from 'fluent-ffmpeg';
-const fs = require('fs');
-const path = require("path");
-// const ffmpeg = require('fluent-ffmpeg');
+import { ffmpegInput, singleProcessOptions } from './interfaces';
+import * as fs from 'fs';
+import * as path from 'path';
 
 //Get the paths to the packaged versions of the binaries we want to use
 const ffmpegPath = require('ffmpeg-static').replace(
@@ -64,28 +65,54 @@ const ffprobePath = require('ffprobe-static').path.replace(
     'app.asar',
     'app.asar.unpacked'
 );
-console.log({ ffmpegPath, ffprobePath});
 
-//tell the ffmpeg package where it can find the needed binaries.
 ffmpeg.setFfmpegPath(ffmpegPath);
 ffmpeg.setFfprobePath(ffprobePath);
 
-ipcMain.on('ffmpeg-test', (event, arg) => {
-  console.log({ arg });
-  const filePath = path.dirname(arg);
-  var stream  = fs.createWriteStream(filePath + '/out.mov');
-  console.log(filePath);
-  
-  var command = ffmpeg.default(arg)
-    .output(stream)
-    .outputOptions('-movflags frag_keyframe+empty_moov')
-    .on('end', function() {
-      console.log('Finished processing');
-    })
-    .format('mov')
-    .run();
-    // .on('progress', function(progress) {
-    //   console.log('Processing: ' + progress.percent + '% done');
-    // })
-    // .run();
+function processVideo(options: singleProcessOptions) {
+  return new Promise((resolve, reject) => {
+    ffmpeg.default()
+      .input(options.videoPath)
+      .addInput(options.audioPath)
+      .outputOptions([
+        '-c:v copy',
+        '-map 0:v:0',
+        '-map 1:a:0'
+      ])
+      .on('end', resolve)
+      .on('error', reject)
+      .save(options.output);
+  }); 
+}
+
+ipcMain.on('merge', async (event, input: ffmpegInput) => {
+  const { video, audio } = input;
+
+  let processChain: singleProcessOptions[] = [];
+
+  // Loop over all videos and audio
+  video.forEach((videoPath, index) => {
+    audio.forEach(audioPath => {
+      const dir = path.dirname(videoPath);
+      const fileName = path.basename(audioPath, path.extname(audioPath)) + path.extname(videoPath);
+      const videoBaseName = path.basename(videoPath, path.extname(videoPath));
+
+      const output = video.length > 1 ? path.join(dir, videoBaseName + '_' + fileName) : path.join(dir, fileName)
+
+      processChain.push({ videoPath, audioPath, output });
+    });
+  });
+
+  let processCount = 0;
+  for (const options of processChain) {
+    await processVideo(options).catch(console.error).then(() => {
+      event.reply('merge:progress', `${++processCount} of ${processChain.length} videos complete`)
+    });
+  }
+
+  event.reply('merge:complete', `✅ Processed ${processCount} of ${processChain.length} videos`)
+});
+
+ipcMain.on('showDialog', (event, options) => {
+  dialog.showMessageBox(mainWindow, options);
 });

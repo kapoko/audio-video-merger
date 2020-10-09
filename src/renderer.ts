@@ -26,11 +26,42 @@
  * ```
  */
 
-const { ipcRenderer } = require('electron')
-
+import { ipcRenderer } from 'electron';
+import { ffmpegInput } from './interfaces';
 import './index.scss';
 
 const dropZone: HTMLElement = document.getElementById('drop-zone');
+const progressEl: HTMLElement = document.getElementById('progress');
+
+function processInput(fileList: FileList): ffmpegInput {
+    const result: ffmpegInput = { audio: [], video: [] }
+
+    for(let i = 0; i < fileList.length; i++) {
+        const { type } = fileList[i];
+
+        switch(type) {
+            case 'audio/mpeg':
+            case 'audio/mp4': 
+            case 'audio/x-aiff': 
+            case 'audio/vnd.wav': 
+            case 'audio/vorbis': 
+            case 'audio/wav': 
+                result.audio.push(fileList[i].path)
+                break;
+            case 'video/mp4':   
+            case 'video/quicktime':    
+            case 'video/H264':
+            case 'video/H265':
+                result.video.push(fileList[i].path)
+                break;
+        }
+    }
+
+    return {
+        isValid: !!result.audio.length && !!result.video.length,
+        ...result
+    }
+}
 
 dropZone.addEventListener('drop', (event) => { 
     event.preventDefault(); 
@@ -38,11 +69,19 @@ dropZone.addEventListener('drop', (event) => {
     dropZone.classList.remove('is-active');
 
     const { files } = event.dataTransfer;
-    for(let i = 0; i < files.length; i++) {
-        console.log('File Path of dragged files: ', files[i].path) 
-        ipcRenderer.send('ffmpeg-test', files[i].path);
+    const input: ffmpegInput = processInput(files);
+
+    if (!input.isValid) {
+        ipcRenderer.send('showDialog', {
+            title: 'jaja',
+            message: 'Select at least one audio and one video file.'
+        });
+        return;
     }
-}); 
+
+    console.log(input)
+    ipcRenderer.send('merge', input);
+});
   
 dropZone.addEventListener('dragover', (e) => { 
     e.preventDefault(); 
@@ -56,3 +95,14 @@ dropZone.addEventListener('dragenter', (event) => {
 dropZone.addEventListener('dragleave', (event) => { 
     dropZone.classList.remove('is-active');
 });
+
+ipcRenderer.on('merge:progress', (event, arg) => {
+    progressEl.style.color = '';
+    progressEl.textContent = arg;
+});
+
+ipcRenderer.on('merge:complete', (event, arg) => {
+    progressEl.style.color = 'green';
+    progressEl.textContent = arg;
+    new Notification('Merging videos complete', { body: arg });
+})

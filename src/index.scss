@@ -4,12 +4,17 @@ html, body {
     color: #fff;
     margin: 0;
     padding: 0;
+    user-select: none;
+}
+
+p {
+    text-align: center;
 }
 
 .drop-zone {
-    border: 5px dashed #555;
-    padding: 1rem;
-    margin: 1rem;
+    border: 3px dashed #555;
+    padding: .5rem;
+    margin: .5rem;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -19,4 +24,12 @@ html, body {
         border-color: #fff;
         background-color: rgba(255, 255, 255, 0.1);
     }
+
+    * {
+        pointer-events: none;
+    }
+}
+
+h1 {
+    font-weight: 100;
 }
