@@ -1,0 +1,23 @@
+.drop-zone {
+    border: 2px dashed #aaa;
+    margin: 1.2rem;
+    border-radius: .2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    flex-grow: 1;
+    box-shadow: 0px 2px 6px 0px rgba(0, 0, 0, 0.15);
+    background-color: #f5f5f5;
+    
+    &.is-dragging {
+        border-color: #aaa;
+        background-color: rgba(0, 0, 0, 0.1);
+        box-shadow: 0px 2px 15px 0px rgba(0, 0, 0, 0.3);
+        background: #fff;
+    }
+
+    * {
+        pointer-events: none;
+    }
+}

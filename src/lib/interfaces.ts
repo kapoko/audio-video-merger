@@ -1,13 +1,11 @@
-interface ffmpegInput {
+export interface processFilesRequest {
     isValid?: boolean;
     audio: string[]
     video: string[]
 }
 
-interface singleProcessOptions {
+export interface singleProcessOptions {
     videoPath: string,
     audioPath: string,
     output: string
 }
-
-export { ffmpegInput, singleProcessOptions }

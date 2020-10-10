@@ -1,5 +1,9 @@
 import { app, BrowserWindow, ipcMain, dialog } from 'electron';
+import * as ffmpeg from 'fluent-ffmpeg';
+import { processFilesRequest, singleProcessOptions } from './lib/interfaces';
+import * as path from 'path';
 declare const MAIN_WINDOW_WEBPACK_ENTRY: any;
+declare const MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY: any;
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (require('electron-squirrel-startup')) { // eslint-disable-line global-require
@@ -7,34 +11,57 @@ if (require('electron-squirrel-startup')) { // eslint-disable-line global-requir
 }
 
 let mainWindow: BrowserWindow;
+const gotTheLock = app.requestSingleInstanceLock()
 
 const createWindow = (): void => {
   // Create the browser window.
   mainWindow = new BrowserWindow({
-    height: 480,
     width: 640,
+    height: 480,
     resizable: false,
+    show: false,
     webPreferences: {
-      nodeIntegration: true,
-      devTools: false
+      nodeIntegration: false,
+      worldSafeExecuteJavaScript: true,
+      contextIsolation: true,
+      preload: MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY,
+      devTools: !app.isPackaged
     }
   });
 
-  // and load the index.html of the app.
+  console.log(MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY);
+
   mainWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY);
 
-  // Open the DevTools.
-  mainWindow.webContents.openDevTools();
+  if (!app.isPackaged) {
+    mainWindow.webContents.openDevTools();
+  }
+
+  mainWindow.once('ready-to-show', () => {
+    mainWindow.show()
+  })
 };
 
-// This method will be called when Electron has finished
-// initialization and is ready to create browser windows.
-// Some APIs can only be used after this event occurs.
-app.on('ready', createWindow);
+if (!gotTheLock) {
+  app.quit()
+} else {
+  app.on('second-instance', (event, commandLine, workingDirectory) => {
+    // Someone tried to run a second instance, we should focus our window.
+    if (mainWindow) {
+      if (mainWindow.isMinimized()) mainWindow.restore()
+      mainWindow.focus()
+    }
+  })
 
-// Quit when all windows are closed, except on macOS. There, it's common
-// for applications and their menu bar to stay active until the user quits
-// explicitly with Cmd + Q.
+  // Create myWindow, load the rest of the app, etc...
+  app.on('ready', createWindow);
+}
+
+if (process.argv.length >= 2) {
+  const filePath = process.argv[1]
+  console.log(filePath);
+}
+
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
     app.quit();
@@ -42,19 +69,10 @@ app.on('window-all-closed', () => {
 });
 
 app.on('activate', () => {
-  // On OS X it's common to re-create a window in the app when the
-  // dock icon is clicked and there are no other windows open.
   if (BrowserWindow.getAllWindows().length === 0) {
     createWindow();
   }
 });
-
-// In this file you can include the rest of your app's specific main process
-// code. You can also put them in separate files and import them here.
-import * as ffmpeg from 'fluent-ffmpeg';
-import { ffmpegInput, singleProcessOptions } from './interfaces';
-import * as fs from 'fs';
-import * as path from 'path';
 
 //Get the paths to the packaged versions of the binaries we want to use
 const ffmpegPath = require('ffmpeg-static').replace(
@@ -85,7 +103,7 @@ function processVideo(options: singleProcessOptions) {
   }); 
 }
 
-ipcMain.on('merge', async (event, input: ffmpegInput) => {
+ipcMain.on('merge', async (event, input: processFilesRequest) => {
   const { video, audio } = input;
 
   let processChain: singleProcessOptions[] = [];

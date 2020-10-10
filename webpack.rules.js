@@ -18,10 +18,16 @@ module.exports = [
     test: /\.tsx?$/,
     exclude: /(node_modules|\.webpack)/,
     use: {
-      loader: 'ts-loader',
+      loader: 'babel-loader',
       options: {
-        transpileOnly: true
+        // transpileOnly: true,
+        presets: ['@babel/preset-react', '@babel/typescript'],
       }
     }
   },
+  {
+    resolve: {
+      alias: { 'react-dom': '@hot-loader/react-dom'  }
+    }
+  }
 ];
