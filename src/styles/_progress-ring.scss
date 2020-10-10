@@ -1,0 +1,23 @@
+.progress-ring {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    
+    > * {
+        position: absolute;
+    }
+
+    .circle {
+        transition: 0.35s stroke-dashoffset;
+        transform: rotate(-90deg);
+        transform-origin: 50% 50%;
+    }
+
+    .circle-background {
+        stroke: #d6d6d6;
+    }
+
+    .progress {
+        
+    }
+}

@@ -13,11 +13,10 @@ p {
     text-align: center;
 }
 
-h1 {
-    font-weight: 100;
-}
-
 .app-root {
     display: flex;
+    flex-direction: column;
     width: 100%;
+    align-items: center;
+    justify-content: center;
 }

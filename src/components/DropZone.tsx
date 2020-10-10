@@ -1,7 +1,4 @@
 import React, { useState } from 'react';
-// import withFileDrop, { WithFileDropProps } from './withFileDrop';
-
-// interface DropZoneProps extends WithFileDropProps {}
 
 export interface DropZoneProps {
     onDropFiles(files: FileList): void

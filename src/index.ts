@@ -29,8 +29,6 @@ const createWindow = (): void => {
     }
   });
 
-  console.log(MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY);
-
   mainWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY);
 
   if (!app.isPackaged) {
@@ -99,6 +97,9 @@ function processVideo(options: singleProcessOptions) {
       ])
       .on('end', resolve)
       .on('error', reject)
+      .on('progress', (progress) => {
+        console.log(progress);
+      })
       .save(options.output);
   }); 
 }
@@ -124,7 +125,7 @@ ipcMain.on('merge', async (event, input: processFilesRequest) => {
   let processCount = 0;
   for (const options of processChain) {
     await processVideo(options).catch(console.error).then(() => {
-      event.reply('merge:progress', `${++processCount} of ${processChain.length} videos complete`)
+      event.reply('merge:progress', ++processCount / processChain.length)
     });
   }
 

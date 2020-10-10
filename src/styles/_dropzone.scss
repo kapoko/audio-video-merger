@@ -1,6 +1,7 @@
 .drop-zone {
     border: 2px dashed #aaa;
     margin: 1.2rem;
+    width: calc(100% - 2.4rem);
     border-radius: .2rem;
     display: flex;
     align-items: center;
@@ -19,5 +20,9 @@
 
     * {
         pointer-events: none;
+    }
+
+    h1 {
+        font-weight: 100;
     }
 }

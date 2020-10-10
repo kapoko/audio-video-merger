@@ -12,7 +12,7 @@ declare global {
 contextBridge.exposeInMainWorld(
     'api', {
         send: (channel: string, data: any) => {
-            let validChannels = ['showDialog'];
+            let validChannels = ['showDialog', 'merge'];
             if (validChannels.includes(channel)) {
                 ipcRenderer.send(channel, data);
             }
