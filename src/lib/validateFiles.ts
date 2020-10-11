@@ -1,8 +1,14 @@
-import { processFilesRequest } from './interfaces';
+import { isValidElement } from 'react';
+import { ProcessFilesRequest } from './interfaces';
 
 const validateFiles = () => {
-    function checkFiles(files: FileList): processFilesRequest {
-        const result: processFilesRequest = { audio: [], video: [] }
+    function checkFiles(files: FileList): ProcessFilesRequest {
+        const result: ProcessFilesRequest = { 
+            audio: [], 
+            video: [], 
+            numVideos: 0,
+            isValid: false
+        }
 
         for(let i = 0; i < files.length; i++) {
             const { type } = files[i];
@@ -26,8 +32,9 @@ const validateFiles = () => {
         }
 
         return {
+            ...result,
             isValid: !!result.audio.length && !!result.video.length,
-            ...result
+            numVideos: result.audio.length * result.video.length,
         }
     }
 

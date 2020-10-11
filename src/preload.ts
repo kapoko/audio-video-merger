@@ -18,7 +18,7 @@ contextBridge.exposeInMainWorld(
             }
         },
         receive: (channel: string, func: (args?: any) => void) => {
-            let validChannels = ['merge:progress', 'merge:complete'];
+            let validChannels = ['merge:progress', 'merge:complete', 'merge:cancel'];
             if (validChannels.includes(channel)) {
                 // Deliberately strip event as it includes `sender` 
                 ipcRenderer.on(channel, (event: any, ...args: any) => func(...args));

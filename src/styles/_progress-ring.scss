@@ -2,7 +2,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    
+
     > * {
         position: absolute;
     }
@@ -17,7 +17,7 @@
         stroke: #d6d6d6;
     }
 
-    .progress {
-        
-    }
+    h1.progress {
+        font-weight: 600;
+    }    
 }

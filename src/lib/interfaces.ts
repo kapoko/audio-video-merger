@@ -1,11 +1,17 @@
-export interface processFilesRequest {
-    isValid?: boolean;
+export interface ProcessFilesRequest {
+    isValid: boolean
+    numVideos: number
     audio: string[]
     video: string[]
 }
 
-export interface singleProcessOptions {
-    videoPath: string,
-    audioPath: string,
+export interface SingleProcessOptions {
+    videoPath: string
+    audioPath: string
     output: string
+}
+
+export interface ProcessResult {
+    processed: number
+    total: number
 }
