@@ -1,8 +1,10 @@
-import { app, BrowserWindow, ipcMain, dialog } from 'electron';
-import * as ffmpeg from 'fluent-ffmpeg';
-import { ProcessFilesRequest, SingleProcessOptions, ProcessResult } from './lib/interfaces';
 import * as path from 'path';
 import * as fs from 'fs';
+import * as ffmpeg from 'fluent-ffmpeg';
+import { app, BrowserWindow, ipcMain, dialog } from 'electron';
+import { ProcessFilesRequest, SingleProcessOptions, ProcessResult } from './lib/interfaces';
+import { getSeconds } from './lib/helpers'
+import { IpcMainEvent } from 'electron/main';
 
 declare const MAIN_WINDOW_WEBPACK_ENTRY: any;
 declare const MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY: any;
@@ -87,47 +89,54 @@ const ffprobePath = require('ffprobe-static').path.replace(
 ffmpeg.setFfmpegPath(ffmpegPath);
 ffmpeg.setFfprobePath(ffprobePath);
 
-function processVideo(options: SingleProcessOptions) {
+function processVideo(options: SingleProcessOptions, totalBytesProcessed: number, totalBytes: number, event: IpcMainEvent) {
   return new Promise((resolve, reject) => {
+    let duration: number | false;
+
     ffmpeg.default()
-      .input(options.videoPath)
-      .addInput(options.audioPath)
+      .input(options.video.path)
+      .addInput(options.audio.path)
       .outputOptions([
         '-c:v copy',
         '-map 0:v:0',
         '-map 1:a:0'
       ])
+      .on('codecData', data => duration = data.video_details ? getSeconds(data.duration) : false)
       .on('end', resolve)
-      .on('error', reject)
+      .on('error', error => reject(error.message))
       .on('progress', (progress) => {
-        console.log(progress);
+        const timemark = getSeconds(progress.timemark)
+        if (duration && timemark) { // Only send progress if we have enough info
+          const currentProgress = Math.min(timemark / duration, 1);
+          const currentBytesProcessed = currentProgress * options.bytes;
+          event.reply('merge:progress', (totalBytesProcessed + currentBytesProcessed) / totalBytes)
+        }
       })
       .save(options.output);
   }); 
 }
 
 ipcMain.on('merge', async (event, input: ProcessFilesRequest) => {
-  const { video, audio } = input;
+  const { videoList, audioList } = input;
 
   let processChain: SingleProcessOptions[] = [];
   let yesToAll: boolean = false;
   let noToAll: boolean = false;
 
   // Loop over all videos and audio
-  video.forEach((videoPath, index) => {
-    audio.forEach(audioPath => {
-      const dir = path.dirname(videoPath);
-      const fileName = path.basename(audioPath, path.extname(audioPath)) + path.extname(videoPath);
-      const videoBaseName = path.basename(videoPath, path.extname(videoPath));
+  videoList.forEach(video => {
+    audioList.forEach(audio => {
+      const dir = path.dirname(video.path);
+      const fileName = path.basename(audio.path, path.extname(audio.path)) + path.extname(video.path);
+      const videoBaseName = path.basename(video.path, path.extname(video.path));
 
-      const output = video.length > 1 ? path.join(dir, videoBaseName + '_' + fileName) : path.join(dir, fileName);
+      const output = videoList.length > 1 ? path.join(dir, videoBaseName + '_' + fileName) : path.join(dir, fileName);
       
-      let shouldSkip: boolean = false;
       if (fs.existsSync(output) && !yesToAll && !noToAll) {  
         const result: number = dialog.showMessageBoxSync(mainWindow, {
           type: 'question',
           message: 'The file ' + path.basename(output) + ' already exists in the source folder. Overwrite it?',
-          buttons: ['Yes to all', 'Yes', 'Skip', 'Cancel']
+          buttons: ['Yes to all', 'Yes', 'Cancel']
         })
 
         switch (result) {
@@ -136,21 +145,14 @@ ipcMain.on('merge', async (event, input: ProcessFilesRequest) => {
             break;
           case 1: // Yes (do nothing)
             break;
-          case 2: // Skip
-            shouldSkip = true;
-            break;
-          case 3: // Cancel 
+          case 2: // Cancel 
             event.reply('merge:cancel')
             noToAll = true;
             break;
         }
-
-        if (shouldSkip) {
-          return;
-        }
       }
 
-      processChain.push({ videoPath, audioPath, output });
+      processChain.push({ video, audio, output, bytes: audio.size + video.size});
     });
   });
 
@@ -158,19 +160,26 @@ ipcMain.on('merge', async (event, input: ProcessFilesRequest) => {
     return;
   }
 
-  let processCount = 0;
-
-  for (const options of processChain) {
-    await processVideo(options).catch(console.error).then(() => {
-      event.reply('merge:progress', ++processCount / processChain.length)
-    });
-  }
-
   const result: ProcessResult = { 
-    processed: processCount, 
-    total: input.numVideos 
+    processed: 0, 
+    total: input.numVideos,
+    errors: []
   }
-  event.reply('merge:complete', result);
+
+  // Gather total bytesize to process for making an estimation on the progress
+  const totalBytes: number = processChain.reduce((total, process) => total += process.bytes, 0)
+  let bytesProcessed: number = 0;
+
+  for (const current of processChain) {
+    await processVideo(current, bytesProcessed, totalBytes, event).then(() => {
+      bytesProcessed += current.bytes;
+      console.log({bytesProcessed, totalBytes});
+      result.processed++;
+      event.reply('merge:progress', bytesProcessed / totalBytes)
+    }).catch(result.errors.push)
+  }
+  
+  event.reply(result.errors.length ? 'merge:error' : 'merge:complete', result);
 });
 
 ipcMain.on('showDialog', (event, options) => {

@@ -1,17 +1,24 @@
+export interface FileInfo {
+    path: string
+    size: number
+}
+
 export interface ProcessFilesRequest {
     isValid: boolean
     numVideos: number
-    audio: string[]
-    video: string[]
+    audioList: FileInfo[]
+    videoList: FileInfo[]
 }
 
 export interface SingleProcessOptions {
-    videoPath: string
-    audioPath: string
+    video: FileInfo
+    audio: FileInfo
     output: string
+    bytes: number
 }
 
 export interface ProcessResult {
     processed: number
     total: number
+    errors: string[]
 }

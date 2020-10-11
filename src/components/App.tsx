@@ -15,7 +15,7 @@ function App() {
     const { checkFiles } = validateFiles();
     const [screenState, setScreenState] = useState<ScreenState>(ScreenState.SelectFiles);
     const [progress, setProgress] = useState(0);
-    const [result, setResult] = useState<ProcessResult>({ processed: 0, total: 0 });
+    const [result, setResult] = useState<ProcessResult>({ processed: 0, total: 0, errors: [] });
 
     function handleDrop(files: FileList) {
         const request: ProcessFilesRequest = checkFiles(files);
@@ -40,6 +40,14 @@ function App() {
         window.api.receive('merge:cancel', () => {
             setScreenState(ScreenState.SelectFiles);
         });
+        window.api.receive('merge:error', (res: ProcessResult) => {
+            new Notification('Something went wrong', { 
+                body: `Generated ${res.errors.length} errors. Created ${res.processed} of ${res.total} videos.`
+            });
+            console.error(res.errors);
+            setProgress(0);
+            setScreenState(ScreenState.SelectFiles)
+        })
         window.api.receive('merge:complete', (res: ProcessResult) => {
             setScreenState(ScreenState.Complete);
             setProgress(0);
