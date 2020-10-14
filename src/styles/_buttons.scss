@@ -1,0 +1,9 @@
+@use "@material/fab";
+
+@include fab.core-styles;
+
+.mdc-fab {
+    // container-fill-color($color) is in the button namespace
+    @include fab.container-color(#fbc50c);
+    background: linear-gradient(45deg, #be3d16 0%, #fbc50c 80%);
+}

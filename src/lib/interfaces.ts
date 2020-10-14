@@ -1,6 +1,7 @@
 export interface FileInfo {
     path: string
     size: number
+    type: string
 }
 
 export interface ProcessFilesRequest {

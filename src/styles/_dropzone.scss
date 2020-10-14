@@ -1,7 +1,8 @@
 .drop-zone {
+    $margin: 1.2rem;
     border: 2px dashed #aaa;
-    margin: 1.2rem;
-    width: calc(100% - 2.4rem);
+    margin: $margin;
+    width: calc(100% - #{$margin * 2});
     border-radius: .2rem;
     display: flex;
     align-items: center;
@@ -18,7 +19,13 @@
         background: #fff;
     }
 
-    * {
+    h1 {
         pointer-events: none;
+    }
+
+    button {
+        position: absolute;
+        right: $margin * 2.5;
+        bottom: $margin * 2.5;
     }
 }
