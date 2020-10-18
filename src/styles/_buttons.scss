@@ -1,9 +1,17 @@
-@use "@material/fab";
+@use '@material/fab';
+@use '@material/ripple';
+@import '@material/react-ripple/index';
 
+@import 'variables';
 @include fab.core-styles;
 
-.mdc-fab {
-    // container-fill-color($color) is in the button namespace
-    @include fab.container-color(#fbc50c);
-    background: linear-gradient(45deg, #be3d16 0%, #fbc50c 80%);
+.ripple-icon-component {
+    @include mdc-ripple-surface;
+    @include mdc-ripple-radius-bounded;
+    @include mdc-states;
+    @include ripple.states-base-color(#fff);
+    @include ripple.surface;
+    @include fab.container-color($primary);
+    background: linear-gradient(45deg, $secondary 0%, $primary 80%);
+    overflow: hidden;
 }

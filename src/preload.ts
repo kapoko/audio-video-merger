@@ -1,11 +1,12 @@
-import { ipcRenderer, contextBridge } from 'electron'
+
+import { ipcRenderer, contextBridge, IpcRendererEvent } from 'electron'
 
 declare global {
     interface Window {
         api: {
-            send: (channel: string, data: any) => void,
-            on: (channel: string, func: (args? :any) => void) => void,
-            once: (channel: string, func: (args? :any) => void) => void,
+            send: <T>(channel: string, data: T) => void,
+            on: <T>(channel: string, callback: (...args :T[]) => void) => void,
+            once: <T>(channel: string, callback: (...args: T[]) => void) => void,
             removeAllListeners: (channels: string[]) => void
         }
     }
@@ -29,25 +30,25 @@ const validReceiveChannels = [
 
 contextBridge.exposeInMainWorld(
     'api', {
-        send: (channel: string, data: any) => {
+        send: <T>(channel: string, data: T) => {
             if (validSendChannels.includes(channel)) {
                 ipcRenderer.send(channel, data);
             }
         },
-        on: (channel: string, func: (args?: any) => void) => {
+        on: <T>(channel: string, callback: (...args: T[]) => void) => {
             if (validReceiveChannels.includes(channel)) {
-                ipcRenderer.on(channel, (event: any, ...args: any) => func(...args));
+                ipcRenderer.on(channel, (event: IpcRendererEvent, ...args: T[]) => callback(...args));
             }
         },
-        once: (channel: string, func: (args?: any) => void) => {
+        once: <T>(channel: string, callback: (...args: T[]) => void) => {
             if (validReceiveChannels.includes(channel)) {
-                ipcRenderer.once(channel, (event: any, ...args: any) => func(...args));
+                ipcRenderer.once(channel, (event: IpcRendererEvent, ...args: T[]) => callback(...args));
             }
         },        
         removeAllListeners: (channels: string[]) => {
             channels.forEach(channel => {
                 ipcRenderer.removeAllListeners(channel);
-            })
+            });
         }
     }
 );

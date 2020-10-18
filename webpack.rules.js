@@ -17,17 +17,13 @@ module.exports = [
   {
     test: /\.tsx?$/,
     exclude: /(node_modules|\.webpack)/,
-    use: {
-      loader: 'babel-loader',
-      options: {
-        // transpileOnly: true,
-        presets: ['@babel/preset-react', '@babel/typescript'],
+    use: [
+      {
+        loader: 'babel-loader',
+        options: {
+          presets: ['@babel/preset-react', '@babel/typescript'],
+        }
       }
-    }
-  },
-  {
-    resolve: {
-      alias: { 'react-dom': '@hot-loader/react-dom'  }
-    }
+    ]
   }
 ];

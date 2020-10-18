@@ -14,3 +14,4 @@ describe('getSeconds helper', () => {
         expect(getSeconds('11:13:56.49')).to.equal(40436);
     });
 });
+

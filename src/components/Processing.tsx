@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 
 export interface ProcessingProps {
     progress: number
@@ -8,8 +8,7 @@ const radius = 90;
 const strokeWidth = 10;
 const circumference = radius * 2 * Math.PI;
 
-const Processing = (props: ProcessingProps) => {
-
+const Processing: React.FunctionComponent<ProcessingProps> = (props: ProcessingProps) => {
     const circleStyles = { 
         strokeDashoffset: circumference - props.progress * circumference,
         strokeDasharray: `${circumference} ${circumference}`

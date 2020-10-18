@@ -2,6 +2,7 @@ const webpack = require('webpack');
 const CopyPlugin = require('copy-webpack-plugin');
 const PermissionsOutputPlugin = require('webpack-permissions-plugin');
 const path = require('path');
+const ESLintPlugin = require('eslint-webpack-plugin');
 
 module.exports = {
   /**
@@ -33,6 +34,14 @@ module.exports = {
           fileMode: '755'
         },
       ]
-    })
+    }),
+    /**
+     * ESLintPlugin is only run inside main config, but applies to all 
+     * files for renderer as well
+     */
+    new ESLintPlugin({
+      context: 'src/',
+      extensions: ['ts', 'tsx'] 
+    }),
   ]
 }

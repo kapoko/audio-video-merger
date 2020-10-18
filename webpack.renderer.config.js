@@ -1,5 +1,6 @@
 const rules = require('./webpack.rules');
 const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
+const StylelintPlugin = require('stylelint-webpack-plugin');
 
 rules.push({
   test: /\.s[ac]ss$/i,
@@ -17,6 +18,9 @@ module.exports = {
   target: 'electron-renderer',
   plugins: [
     new ForkTsCheckerWebpackPlugin(),
+    new StylelintPlugin({
+      fix: true
+    }),
   ],
   resolve: {
     extensions: ['.js', '.ts', '.jsx', '.tsx', '.css']

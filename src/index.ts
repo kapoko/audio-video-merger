@@ -2,14 +2,20 @@ import * as path from 'path';
 import * as fs from 'fs';
 import * as ffmpeg from 'fluent-ffmpeg';
 import * as mime from 'mime-types';
-import { app, BrowserWindow, ipcMain, dialog, Notification } from 'electron';
+import { app, BrowserWindow, ipcMain, dialog } from 'electron';
 import { ProcessFilesRequest, SingleProcessOptions, ProcessResult, FileInfo } from './lib/interfaces';
 import { getSeconds } from './lib/helpers'
 import { IpcMainEvent } from 'electron/main';
 import debounce from 'lodash/debounce';
 
-declare const MAIN_WINDOW_WEBPACK_ENTRY: any;
-declare const MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY: any;
+
+//Get the paths to the packaged versions of the binaries we want to use
+import ffmpegPath from 'ffmpeg-static'
+
+import ffprobePath from 'ffprobe-static'
+
+declare const MAIN_WINDOW_WEBPACK_ENTRY: string;
+declare const MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY: string;
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (require('electron-squirrel-startup')) { // eslint-disable-line global-require
@@ -17,7 +23,7 @@ if (require('electron-squirrel-startup')) { // eslint-disable-line global-requir
 }
 
 let mainWindow: BrowserWindow;
-let mainWindowReady: boolean = false
+let mainWindowReady = false
 let openFiles: FileInfo[] = [];
 const gotTheLock = app.requestSingleInstanceLock()
 
@@ -55,7 +61,7 @@ const createWindow = (): void => {
 
 function getFileInfo(path: string): FileInfo {
     const { size } = fs.statSync(path); 
-    const type: string = String(mime.lookup(path));
+    const type = String(mime.lookup(path));
     const file: FileInfo = { size, path, type };
 
     return file;
@@ -65,7 +71,7 @@ function getFileInfo(path: string): FileInfo {
  * Create debounced function because when dropping files on an open program
  * they don't come all at once
  */
-let debouncedOpenFiles: () => void = debounce(handleOpenFiles, 1000);
+const debouncedOpenFiles: () => void = debounce(handleOpenFiles, 1000);
 
 app.on('open-file', (event, path: string) => {
     event.preventDefault();
@@ -75,7 +81,7 @@ app.on('open-file', (event, path: string) => {
     openFiles.push(file);
 
     if (mainWindowReady) {
-        if (openFiles.length == 1) {
+        if (openFiles.length === 1) {
             mainWindow.webContents.send('merge:waiting');
         }
         debouncedOpenFiles();
@@ -123,56 +129,52 @@ function handleOpenFiles() {
     mainWindow.webContents.send('merge:start', openFiles);
     openFiles = [];
 }
-
-
-//Get the paths to the packaged versions of the binaries we want to use
-const ffmpegPath = require('ffmpeg-static').replace(
+ffmpegPath.replace(
     'app.asar',
     'app.asar.unpacked'
 );
-
-const ffprobePath = require('ffprobe-static').path.replace(
+ffprobePath.path.replace(
     'app.asar',
     'app.asar.unpacked'
 );
         
 ffmpeg.setFfmpegPath(ffmpegPath);
-ffmpeg.setFfprobePath(ffprobePath);
+ffmpeg.setFfprobePath(ffprobePath.path);
 
 function processVideo(options: SingleProcessOptions, totalBytesProcessed: number, totalBytes: number, event: IpcMainEvent) {
     return new Promise((resolve, reject) => {
         let duration: number | false;
         
         ffmpeg.default()
-        .input(options.video.path)
-        .addInput(options.audio.path)
-        .outputOptions([
-            '-c:v copy',
-            '-map 0:v:0',
-            '-map 1:a:0'
-        ])
-        .on('codecData', data => duration = data.video_details ? getSeconds(data.duration) : false)
-        .on('end', resolve)
-        .on('error', error => reject(error.message))
-        .on('progress', (progress) => {
-            const timemark = getSeconds(progress.timemark)
-            if (duration && timemark) { // Only send progress if we have enough info
-                const currentProgress = Math.min(timemark / duration, 1);
-                const currentBytesProcessed = currentProgress * options.bytes;
-                console.log((totalBytesProcessed + currentBytesProcessed) / totalBytes);
-                event.reply('merge:progress', (totalBytesProcessed + currentBytesProcessed) / totalBytes)
-            }
-        })
-        .save(options.output);
+            .input(options.video.path)
+            .addInput(options.audio.path)
+            .outputOptions([
+                '-c:v copy',
+                '-map 0:v:0',
+                '-map 1:a:0'
+            ])
+            .on('codecData', data => duration = data.video_details ? getSeconds(data.duration) : false)
+            .on('end', resolve)
+            .on('error', error => reject(error.message))
+            .on('progress', (progress) => {
+                const timemark = getSeconds(progress.timemark)
+                if (duration && timemark) { // Only send progress if we have enough info
+                    const currentProgress = Math.min(timemark / duration, 1);
+                    const currentBytesProcessed = currentProgress * options.bytes;
+                    console.log((totalBytesProcessed + currentBytesProcessed) / totalBytes);
+                    event.reply('merge:progress', (totalBytesProcessed + currentBytesProcessed) / totalBytes)
+                }
+            })
+            .save(options.output);
     }); 
 }
 
 ipcMain.on('merge', async (event, input: ProcessFilesRequest) => {
     const { videoList, audioList } = input;
     
-    let processChain: SingleProcessOptions[] = [];
-    let yesToAll: boolean = false;
-    let noToAll: boolean = false;
+    const processChain: SingleProcessOptions[] = [];
+    let yesToAll = false;
+    let noToAll = false;
     
     // Loop over all videos and audio
     videoList.forEach(video => {
@@ -191,12 +193,12 @@ ipcMain.on('merge', async (event, input: ProcessFilesRequest) => {
                 })
                 
                 switch (result) {
-                    case 0: // Yes to all
+                case 0: // Yes to all
                     yesToAll = true;
                     break;
-                    case 1: // Yes (do nothing)
+                case 1: // Yes (do nothing)
                     break;
-                    case 2: // Cancel 
+                case 2: // Cancel 
                     event.reply('merge:cancel')
                     noToAll = true;
                     break;
@@ -219,14 +221,13 @@ ipcMain.on('merge', async (event, input: ProcessFilesRequest) => {
     
     // Gather total bytesize to process for making an estimation on the progress
     const totalBytes: number = processChain.reduce((total, process) => total += process.bytes, 0)
-    let bytesProcessed: number = 0;
+    let bytesProcessed = 0;
     
     for (const current of processChain) {
-        await processVideo(current, bytesProcessed, totalBytes, event).then(() => {
-            bytesProcessed += current.bytes;
-            result.processed++;
-            event.reply('merge:progress', bytesProcessed / totalBytes)
-        }).catch(result.errors.push)
+        await processVideo(current, bytesProcessed, totalBytes, event).catch(result.errors.push);
+        bytesProcessed += current.bytes;
+        result.processed++;
+        event.reply('merge:progress', bytesProcessed / totalBytes)
     }
     
     event.reply(result.errors.length ? 'merge:error' : 'merge:complete', result);
