@@ -10,6 +10,7 @@
     @include mdc-ripple-radius-bounded;
     @include mdc-states;
     @include ripple.states-base-color(#fff);
+    @include ripple.states-opacities((hover: 0.1, focus: 0.3, press: 0.4));
     @include ripple.surface;
     @include fab.container-color($primary);
     background: linear-gradient(45deg, $secondary 0%, $primary 80%);

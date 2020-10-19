@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useReducer } from 'react';
+import React, { useState, useEffect, useReducer, MutableRefObject } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faFolderOpen } from '@fortawesome/free-solid-svg-icons'
 import { FileInfo } from '../lib/interfaces';
@@ -14,8 +14,6 @@ const quotes: string[] = [
     'Go ahead, make my day'
 ]
 
-const initialQuoteIndex: number = Math.floor(Math.random() * quotes.length);
-
 function quoteReducer(currentQuote: number): number {
     let newQuote: number = currentQuote;
 
@@ -30,7 +28,7 @@ const DropZone: React.FunctionComponent<DropZoneProps> = (props: DropZoneProps) 
 
     const [dragging, setDragging] = useState(false);
     const [enterTarget, setEnterTarget] = useState<EventTarget>();
-    const [quoteIndex, switchQuote] = useReducer(quoteReducer, initialQuoteIndex); 
+    const [quoteIndex, switchQuote] = useReducer(quoteReducer, -1); 
 
     useEffect(() => {
         if (!dragging) {

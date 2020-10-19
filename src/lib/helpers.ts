@@ -12,3 +12,15 @@ export function getSeconds(durationString:string): number | false {
 
     return parseInt(m[1]) * 60 * 60 + parseInt(m[2]) * 60 + parseInt(m[3]);
 }
+
+/**
+ * Gets a basename from path
+ * @param str Full Path
+ */
+export function baseName(str: string)
+{
+    const base = new String(str).substring(str.lastIndexOf('/') + 1); 
+    // if (base.lastIndexOf(".") != -1)       
+    //     base = base.substring(0, base.lastIndexOf("."));
+    return base;
+}

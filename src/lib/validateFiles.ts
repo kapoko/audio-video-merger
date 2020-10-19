@@ -5,7 +5,8 @@ function createRequest(files: FileInfo[]): ProcessFilesRequest {
         audioList: [], 
         videoList: [], 
         numVideos: 0,
-        isValid: false
+        isValid: false,
+        unrecognized: []
     }
 
     for(let i = 0; i < files.length; i++) {
@@ -48,6 +49,8 @@ function createRequest(files: FileInfo[]): ProcessFilesRequest {
         case 'video/3gpp':
             result.videoList.push(files[i]);
             break;
+        default:
+            result.unrecognized.push(files[i]);
         }
     }
 

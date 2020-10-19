@@ -9,10 +9,10 @@ const Complete: React.FunctionComponent<CompleteProps> = (props: CompleteProps) 
     const { processed, total } = props.result;
 
     return (
-        <>
+        <div>
             <h1>Complete!</h1>
             <p><span role="img" aria-label="checkmark">✔️</span> Created { processed } of { total } videos.</p>
-        </>
+        </div>
     )
 }
 

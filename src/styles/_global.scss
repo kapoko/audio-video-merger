@@ -20,9 +20,15 @@ h1 {
 }
 
 .app-root {
-    align-items: center;
     display: flex;
-    flex-direction: column;
-    justify-content: center;
     width: 100%;
+
+    > div {
+        align-items: center;
+        display: flex;
+        flex: 1;
+        flex-direction: column;
+        justify-content: center;
+        width: 100%;
+    }
 }

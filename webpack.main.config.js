@@ -41,7 +41,8 @@ module.exports = {
      */
     new ESLintPlugin({
       context: 'src/',
-      extensions: ['ts', 'tsx'] 
+      extensions: ['ts', 'tsx'],
+      fix: true
     }),
   ]
 }

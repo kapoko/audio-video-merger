@@ -9,6 +9,7 @@ export interface ProcessFilesRequest {
     numVideos: number
     audioList: FileInfo[]
     videoList: FileInfo[]
+    unrecognized: FileInfo[]
 }
 
 export interface SingleProcessOptions {

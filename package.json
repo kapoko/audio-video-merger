@@ -6,9 +6,9 @@
   "main": ".webpack/main",
   "scripts": {
     "start": "electron-forge start",
-    "package": "electron-forge package",
-    "make": "electron-forge make",
-    "publish": "electron-forge publish",
+    "package": "npm run test && electron-forge package",
+    "make": "npm run test && electron-forge make",
+    "publish": "npm run test && electron-forge publish",
     "lint": "eslint --ext .ts,.tsx src/",
     "lint:fix": "eslint --ext .ts,.tsx src/ --fix",
     "rebuild": "electron-rebuild -f -w ffmpeg-static ffprobe-static",
@@ -167,12 +167,14 @@
     "@types/mmmagic": "^0.4.30",
     "@types/react": "^16.9.53",
     "@types/react-dom": "^16.9.8",
+    "@types/react-transition-group": "^4.4.0",
     "electron-squirrel-startup": "^1.0.0",
     "ffmpeg-static": "^4.2.7",
     "ffprobe-static": "^3.0.0",
     "fluent-ffmpeg": "^2.1.2",
     "lodash": "^4.17.20",
     "react": "^16.14.0",
-    "react-dom": "^16.14.0"
+    "react-dom": "^16.14.0",
+    "react-transition-group": "^4.4.1"
   }
 }

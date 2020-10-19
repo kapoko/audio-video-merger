@@ -1,0 +1,26 @@
+$transition-speed: 0.15s;
+$transition-offset: 50px;
+$transition-easing-in: cubic-bezier(0.32, 0, 0.67, 0);
+$transition-easing-out: cubic-bezier(0.33, 1, 0.68, 1);
+
+.fade-enter {
+    opacity: 0;
+    transform: translate3d($transition-offset, 0, 0) scale(0.8);
+}
+
+.fade-exit {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+}
+
+.fade-enter-active {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+    transition: transform $transition-easing-out $transition-speed, opacity $transition-speed;
+}
+
+.fade-exit-active {
+    opacity: 0;
+    transform: translate3d(-$transition-offset, 0, 0) scale(0.8);
+    transition: transform $transition-easing-in $transition-speed, opacity $transition-speed;
+}
