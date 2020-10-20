@@ -3,6 +3,7 @@
 # AudioVideoMerger
 
 [![](https://github.com/kapoko/audio-video-merger/workflows/Build/badge.svg)](https://github.com/kapoko/audio-video-merger/actions)
+[![](https://github.com/kapoko/audio-video-merger/workflows/Release/badge.svg)](https://github.com/kapoko/audio-video-merger/actions)
 
 AudioVideoMerger is a tool for painlessly replacing audio under video files.
 
@@ -10,6 +11,10 @@ AudioVideoMerger is a tool for painlessly replacing audio under video files.
 - **Simple to use**: Drag 'n drop files onto the app's icon or in the UI.
 - **Easy to install**: Uses `ffmpeg` and has it bundled so no need to manually install dependencies.
 - **Process multiple files at once**: Select as many audio and video files you want: AudioVideoMerger will automatically create versions for each combination.
+
+## In action 
+
+![gif](https://i.imgur.com/CUIK93h.gif)
 
 ## Platforms
 
