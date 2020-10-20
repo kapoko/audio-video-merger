@@ -6,10 +6,10 @@
 
 AudioVideoMerger is a tool for painlessly replacing audio under video files.
 
-* Fast: No re-encoding of the video.
-* Simple to use: Drag 'n drop files onto the app's icon or in the UI.
-* Easy to install: Uses `ffmpeg` and has it bundled so no need to manually install dependencies.
-* Batch processing: Select as many audio and video files you want: AudioVideoMerger will automatically create versions for each combination.
+- **Fast**: No re-encoding of the video.
+- **Simple to use**: Drag 'n drop files onto the app's icon or in the UI.
+- **Easy to install**: Uses `ffmpeg` and has it bundled so no need to manually install dependencies.
+- **Process multiple files at once**: Select as many audio and video files you want: AudioVideoMerger will automatically create versions for each combination.
 
 ## Platforms
 
