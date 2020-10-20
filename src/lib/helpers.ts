@@ -14,13 +14,11 @@ export function getSeconds(durationString:string): number | false {
 }
 
 /**
- * Gets a basename from path
+ * Gets a basename including extension from path
  * @param str Full Path
  */
-export function baseName(str: string)
+export function baseName(str: string): string
 {
-    const base = new String(str).substring(str.lastIndexOf('/') + 1); 
-    // if (base.lastIndexOf(".") != -1)       
-    //     base = base.substring(0, base.lastIndexOf("."));
+    const base = str.substring(str.lastIndexOf('/') + 1); 
     return base;
 }

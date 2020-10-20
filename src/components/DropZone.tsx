@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useReducer, MutableRefObject } from 'react';
+import React, { useState, useEffect, useReducer } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faFolderOpen } from '@fortawesome/free-solid-svg-icons'
 import { FileInfo } from '../lib/interfaces';
@@ -10,14 +10,13 @@ export interface DropZoneProps {
 }
 
 const quotes: string[] = [
-    'Cast it into the fire! 🔥',
-    'Go ahead, make my day'
+    'Cast it into the fire! 🔥'
 ]
 
 function quoteReducer(currentQuote: number): number {
     let newQuote: number = currentQuote;
 
-    while(quotes.length > 1 && newQuote === currentQuote) {
+    while((newQuote === -1 || quotes.length > 1) && newQuote === currentQuote) {
         newQuote = Math.floor(Math.random() * quotes.length);
     }
 

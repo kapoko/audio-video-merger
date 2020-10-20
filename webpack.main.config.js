@@ -33,6 +33,10 @@ module.exports = {
           path: path.resolve(__dirname, '.webpack', 'main', 'ffmpeg'),
           fileMode: '755'
         },
+        {
+          path: path.resolve(__dirname, '.webpack', 'main', 'native_modules', 'ffprobe'),
+          fileMode: '755'
+        },
       ]
     }),
     /**

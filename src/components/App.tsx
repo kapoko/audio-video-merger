@@ -21,7 +21,6 @@ const App: React.FunctionComponent = () => {
     const [result, setResult] = useState<ProcessResult>({ processed: 0, total: 0, errors: [] });
 
     const handleOpenFiles = useCallback((files: FileInfo[]) => {
-        console.log('open files');
         const request = createRequestFromFileInfo(files);
         process(request);
     }, []);
@@ -40,7 +39,6 @@ const App: React.FunctionComponent = () => {
     }
 
     function process(request: ProcessFilesRequest) {
-        console.log(request);
         setProcessComplete(false);
 
         if (!request.isValid) {
@@ -104,7 +102,7 @@ const App: React.FunctionComponent = () => {
         }
     }
 
-    const nodeRef = useRef<any>(null);
+    const nodeRef = useRef<HTMLDivElement>(document.createElement('div'));
 
     return (
         <SwitchTransition>

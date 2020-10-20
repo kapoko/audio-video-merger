@@ -6,13 +6,13 @@
   "main": ".webpack/main",
   "scripts": {
     "start": "electron-forge start",
-    "package": "npm run test && electron-forge package",
-    "make": "npm run test && electron-forge make",
-    "publish": "npm run test && electron-forge publish",
+    "package": "run-s lint && electron-forge package",
+    "make": "run-p lint test && electron-forge make",
+    "publish": "run-p lint test && electron-forge publish",
     "lint": "eslint --ext .ts,.tsx src/",
     "lint:fix": "eslint --ext .ts,.tsx src/ --fix",
     "rebuild": "electron-rebuild -f -w ffmpeg-static ffprobe-static",
-    "test": "npm run lint && mocha -r ts-node/register test/**/*.ts"
+    "test": "ava"
   },
   "keywords": [],
   "author": {
@@ -20,12 +20,17 @@
     "email": "kasper.koman@gmail.com"
   },
   "license": "MIT",
-  "build": {},
   "config": {
     "forge": {
       "packagerConfig": {
         "icon": "assets/logo",
-        "extendInfo": "assets/Info.plist"
+        "extendInfo": "assets/Info.plist",
+        "asar": {
+          "unpack": [
+            "**/.webpack/main/ffmpeg",
+            "**/.webpack/main/native_modules/ffprobe"
+          ]
+        }
       },
       "makers": [
         {
@@ -68,9 +73,26 @@
               ]
             }
           }
+        ],
+        [
+          "@electron-forge/plugin-auto-unpack-natives"
         ]
       ]
     }
+  },
+  "ava": {
+    "typescript": {
+      "extensions": [
+        "ts",
+        "tsx"
+      ],
+      "rewritePaths": {
+        "src/": ".webpack/"
+      }
+    },
+    "require": [
+      "ts-node/register"
+    ]
   },
   "stylelint": {
     "extends": "stylelint-config-sass-guidelines",
@@ -108,6 +130,7 @@
     ]
   },
   "devDependencies": {
+    "@ava/typescript": "^1.1.1",
     "@babel/preset-react": "^7.12.1",
     "@babel/preset-typescript": "^7.12.1",
     "@electron-forge/cli": "^6.0.0-beta.53",
@@ -119,37 +142,36 @@
     "@electron-forge/plugin-webpack": "^6.0.0-beta.53",
     "@marshallofsound/webpack-asset-relocator-loader": "^0.5.0",
     "@material/react-ripple": "^0.15.0",
-    "@types/chai": "^4.2.14",
     "@types/lodash": "^4.14.162",
-    "@types/mocha": "^8.0.3",
-    "@typescript-eslint/eslint-plugin": "^4.4.1",
-    "@typescript-eslint/parser": "^4.4.1",
+    "@typescript-eslint/eslint-plugin": "^4.5.0",
+    "@typescript-eslint/parser": "^4.5.0",
+    "ava": "^3.13.0",
     "babel-loader": "^8.1.0",
     "babel-preset-react-app": "^9.1.2",
-    "chai": "^4.2.0",
     "copy-webpack-plugin": "^6.2.1",
     "css-loader": "^5.0.0",
-    "electron": "10.1.3",
+    "electron": "^10.1.4",
     "electron-rebuild": "^2.2.0",
     "eslint": "^7.11.0",
     "eslint-config-react-app": "^5.2.1",
     "eslint-plugin-flowtype": "^5.2.0",
     "eslint-plugin-import": "^2.22.1",
     "eslint-plugin-jsx-a11y": "^6.3.1",
-    "eslint-plugin-react": "^7.21.4",
+    "eslint-plugin-react": "^7.21.5",
     "eslint-plugin-react-hooks": "^4.1.2",
     "eslint-webpack-plugin": "^2.1.0",
     "fork-ts-checker-webpack-plugin": "^5.2.0",
     "mime-types": "^2.1.27",
-    "mocha": "^8.2.0",
     "node-loader": "^1.0.2",
+    "npm-run-all": "^4.1.5",
     "sass": "^1.27.0",
     "sass-loader": "^10.0.3",
+    "spectron": "^12.0.0",
     "style-loader": "^2.0.0",
     "stylelint": "^13.7.2",
     "stylelint-config-sass-guidelines": "^7.1.0",
     "stylelint-webpack-plugin": "^2.1.1",
-    "ts-loader": "^8.0.5",
+    "ts-loader": "^8.0.6",
     "ts-node": "^9.0.0",
     "typescript": "^4.0.3",
     "webpack-permissions-plugin": "^1.0.7"

@@ -11,7 +11,6 @@ import debounce from 'lodash/debounce';
 
 //Get the paths to the packaged versions of the binaries we want to use
 import ffmpegPath from 'ffmpeg-static'
-
 import ffprobePath from 'ffprobe-static'
 
 declare const MAIN_WINDOW_WEBPACK_ENTRY: string;
@@ -22,10 +21,11 @@ if (require('electron-squirrel-startup')) { // eslint-disable-line global-requir
     app.quit();
 }
 
-let mainWindow: BrowserWindow;
+let mainWindow: BrowserWindow
 let mainWindowReady = false
-let openFiles: FileInfo[] = [];
+let openFiles: FileInfo[] = []
 const gotTheLock = app.requestSingleInstanceLock()
+const enableDevTools = true //!app.isPackaged
 
 const createWindow = (): void => {
     // Create the browser window.
@@ -36,16 +36,17 @@ const createWindow = (): void => {
         show: false,
         webPreferences: {
             nodeIntegration: false,
+            enableRemoteModule: false,
             worldSafeExecuteJavaScript: true,
             contextIsolation: true,
             preload: MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY,
-            devTools: true//!app.isPackaged
+            devTools: enableDevTools
         }
     });
     
     mainWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY);
     
-    if (!app.isPackaged || true) {
+    if (enableDevTools) {
         mainWindow.webContents.openDevTools();
     }
     
@@ -129,17 +130,10 @@ function handleOpenFiles() {
     mainWindow.webContents.send('merge:start', openFiles);
     openFiles = [];
 }
-ffmpegPath.replace(
-    'app.asar',
-    'app.asar.unpacked'
-);
-ffprobePath.path.replace(
-    'app.asar',
-    'app.asar.unpacked'
-);
-        
-ffmpeg.setFfmpegPath(ffmpegPath);
-ffmpeg.setFfprobePath(ffprobePath.path);
+  
+ffmpeg.setFfmpegPath(ffmpegPath.replace('app.asar', 'app.asar.unpacked'));
+ffmpeg.setFfprobePath(ffprobePath.path.replace('app.asar', 'app.asar.unpacked'));
+console.log(ffprobePath.path.replace('app.asar', 'app.asar.unpacked'));
 
 function processVideo(options: SingleProcessOptions, totalBytesProcessed: number, totalBytes: number, event: IpcMainEvent) {
     return new Promise((resolve, reject) => {
@@ -161,7 +155,6 @@ function processVideo(options: SingleProcessOptions, totalBytesProcessed: number
                 if (duration && timemark) { // Only send progress if we have enough info
                     const currentProgress = Math.min(timemark / duration, 1);
                     const currentBytesProcessed = currentProgress * options.bytes;
-                    console.log((totalBytesProcessed + currentBytesProcessed) / totalBytes);
                     event.reply('merge:progress', (totalBytesProcessed + currentBytesProcessed) / totalBytes)
                 }
             })
