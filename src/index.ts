@@ -25,7 +25,7 @@ let mainWindow: BrowserWindow
 let mainWindowReady = false
 let openFiles: FileInfo[] = []
 const gotTheLock = app.requestSingleInstanceLock()
-const enableDevTools = true //!app.isPackaged
+const enableDevTools = !app.isPackaged
 
 const createWindow = (): void => {
     // Create the browser window.

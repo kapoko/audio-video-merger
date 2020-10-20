@@ -1,9 +1,9 @@
-name: Release
+name: Build
 
 on:
   push:
-    tags:
-      - "v*"
+    branches:
+      - master
 
 jobs:
   release:
@@ -14,12 +14,19 @@ jobs:
         os: [macos-latest]
 
     steps:
-      - name: Checking out
+      - name: Checking out 
         uses: actions/checkout@v2
+
       - name: Setup node
         uses: actions/setup-node@v1
         with:
           node-version: '12'
-      - run: npm install
-      - run: npm test
-      - run: npm run make
+
+      - name: NPM install
+        run: npm install
+
+      - name: Test
+        run: npm test
+
+      - name: Make
+        run: npm run make

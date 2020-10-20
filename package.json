@@ -25,6 +25,7 @@
       "packagerConfig": {
         "icon": "assets/logo",
         "extendInfo": "assets/Info.plist",
+        "name": "AudioVideoMerger",
         "asar": {
           "unpack": [
             "**/.webpack/main/ffmpeg",
