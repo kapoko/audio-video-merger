@@ -3,8 +3,8 @@
   "version": "1.0.0",
   "description": "Site for AudioVideoMerger built on Hugo",
   "repository": {
-    "type" : "git",
-    "url" : "https://github.com/kapoko/audio-video-merger.git"
+    "type": "git",
+    "url": "https://github.com/kapoko/audio-video-merger.git"
   },
   "scripts": {
     "lint": "eslint src",
@@ -51,6 +51,7 @@
     "sass": "^1.26.10",
     "sass-loader": "^10.0.3",
     "style-loader": "^2.0.0",
+    "stylelint": "^13.7.2",
     "stylelint-config-sass-guidelines": "^7.1.0",
     "stylelint-webpack-plugin": "^2.1.1",
     "ts-loader": "^8.0.6",
