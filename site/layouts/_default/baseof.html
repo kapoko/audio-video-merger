@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="{{ $.Site.LanguageCode | default "en" }}">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <base href="{{ .Site.BaseURL }}">
+        <title>{{ partial "head/title.html" . }}</title>
+
+        {{ partial "head/favicons.html" . }}
+        {{ partial "head/metadata.html" . }}
+        {{ partial "head/og.html" . }}
+
+        {{ $script := .Site.Data.manifest.main }}
+        {{ with $script.css }}
+            <link rel="stylesheet" href="{{ absURL . }}"> 
+        {{ end }}
+    </head>
+    <body>
+        <header class="container"> 
+            {{ partial "header.html" . }}
+        </header>
+        <main class="container">
+            {{ block "main" . }}{{ end }}
+        </main>
+
+        {{ partial "footer.html" . }}
+
+        {{ with $script.js }}
+            <script type="text/javascript" src="{{ absURL . }}"></script>
+        {{ end }}
+    </body>
+</html>

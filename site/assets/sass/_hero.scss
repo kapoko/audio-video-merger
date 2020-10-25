@@ -1,0 +1,53 @@
+.hero {
+    align-items: center;
+    display: flex;
+    padding: 1rem 0;
+
+    @include media-breakpoint-up(lg) {
+        height: 100vh;
+    }
+
+    p {
+        @include media-breakpoint-up(lg) {
+            font-size: 1.2em;
+        }
+    }
+
+    .bottom-links {
+        a {
+            color: $body-color;
+        }
+    }
+
+    img {
+        width: 120px;
+    }
+}
+
+.hero-video {
+    $video-ratio: 862 / 1279; // Dimensions of the video h x w
+
+    background: #ccc;
+    overflow: hidden;
+    position: relative;
+
+    @include media-breakpoint-up(lg) {
+        margin-right: calc(100% - 50vw + #{$grid-gutter-width / 2});
+        padding-bottom: calc((50vw - #{$grid-gutter-width / 2}) * #{$video-ratio});
+    }
+    
+    @include media-breakpoint-down(md) {
+        padding-bottom: calc(100% * #{$video-ratio});
+    }
+
+    @include media-breakpoint-down(xs) {
+        margin-left: -$grid-gutter-width / 2;
+        margin-right: -$grid-gutter-width / 2;
+        padding-bottom: calc(100vw * #{$video-ratio});
+    }
+
+    video {
+        position: absolute;
+        width: 100%;
+    }
+}

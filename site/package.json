@@ -1,0 +1,67 @@
+{
+  "name": "audio-video-merger-site",
+  "version": "1.0.0",
+  "description": "Site for AudioVideoMerger built on Hugo",
+  "repository": {
+    "type" : "git",
+    "url" : "https://github.com/kapoko/audio-video-merger.git"
+  },
+  "scripts": {
+    "lint": "eslint src",
+    "start": "run-p start:**",
+    "start:hugo": "hugo server -D",
+    "start:webpack": "NODE_ENV=development webpack",
+    "build": "NODE_ENV=production webpack && hugo --minify"
+  },
+  "author": {
+    "name": "kapoko",
+    "email": "kasper.koman@gmail.com"
+  },
+  "license": "GPL-3.0",
+  "browserslist": {
+    "production": [
+      "defaults"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version"
+    ]
+  },
+  "stylelint": {
+    "extends": "stylelint-config-sass-guidelines",
+    "rules": {
+      "indentation": 4,
+      "max-nesting-depth": 2
+    },
+    "ignoreFiles": [
+      "public/*",
+      "dist/*"
+    ]
+  },
+  "devDependencies": {
+    "assets-webpack-plugin": "^6.0.3",
+    "clean-webpack-plugin": "^3.0.0",
+    "copy-webpack-plugin": "^6.0.3",
+    "css-loader": "^5.0.0",
+    "css-modules-typescript-loader": "^4.0.1",
+    "mini-css-extract-plugin": "^1.1.1",
+    "npm-run-all": "^4.1.5",
+    "postcss-loader": "^4.0.4",
+    "postcss-preset-env": "^6.7.0",
+    "sass": "^1.26.10",
+    "sass-loader": "^10.0.3",
+    "style-loader": "^2.0.0",
+    "stylelint-config-sass-guidelines": "^7.1.0",
+    "stylelint-webpack-plugin": "^2.1.1",
+    "ts-loader": "^8.0.6",
+    "typescript": "^4.0.3",
+    "webpack": "^5.2.0",
+    "webpack-cli": "^4.1.0"
+  },
+  "dependencies": {
+    "@fortawesome/fontawesome-svg-core": "^1.2.32",
+    "@fortawesome/free-brands-svg-icons": "^5.15.1",
+    "@fortawesome/free-solid-svg-icons": "^5.15.1",
+    "bootstrap": "^4.5.3"
+  }
+}

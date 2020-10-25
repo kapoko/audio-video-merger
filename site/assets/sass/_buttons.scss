@@ -1,0 +1,114 @@
+@keyframes moveGradient {
+    50% {
+        background-position: 100% 50%;
+    }
+}
+
+.download-button {
+    $border-width: 5px;
+    $transition-speed: 0.3s;
+    align-items: center;
+    animation: moveGradient 2s infinite alternate;
+    background: linear-gradient(60deg, $secondary 0%, $primary 100%);
+    background-position: 0 50%;
+    background-size: 200% 200%;
+    border: 0;
+    box-shadow: 0 5px 21px 0 rgba(0, 0, 0, 0.3);
+    color: #fff;
+    cursor: pointer;
+    display: flex;
+    flex-direction: row;
+    font-family: $font-family-headers;
+    font-size: 1.5em;
+    font-weight: $font-weight-bold;
+    padding: 0.4em 0.8em;
+    position: relative;
+    text-decoration: none;
+    transition: box-shadow $transition-speed;
+
+    &:hover,
+    &:active {
+        text-decoration: none;
+    }
+
+    &:not(:last-child) {
+        margin-right: 0.5em;
+    }
+
+    &::before {    
+        background-color: #000;
+        bottom: 0;
+        content: '';
+        display: block;
+        left: 0;
+        position: absolute;
+        right: 0;
+        top: 0;
+        transition: opacity $transition-speed;
+        z-index: 0;
+    }
+  
+    &::after {    
+        background-color: #fff;
+        bottom: $border-width;
+        content: '';
+        display: block;
+        left: $border-width;
+        position: absolute;
+        right: $border-width;
+        top: $border-width;
+        transform: scaleX(0);
+        transform-origin: 0 50%;
+        transition: cubic-bezier(0.33, 1, 0.68, 1) transform $transition-speed;
+        z-index: 0;
+    }
+
+    svg {
+        font-size: 1.5em !important;
+        margin-right: 0.5em;
+        transition: color $transition-speed / 2 $transition-speed / 4;
+        z-index: 1;
+    }
+  
+    small {
+        font-size: 0.5em;
+        font-weight: $font-weight-normal;
+    }
+  
+    > span {
+        display: flex;
+        flex-direction: column;
+        line-height: 1em;
+        margin-top: -0.15em;
+        text-align: left;
+        transition: color $transition-speed / 2;
+        z-index: 1;
+
+        > span {
+            white-space: nowrap;
+        }
+    }
+  
+    &:hover {
+        box-shadow: none;
+        color: #000;
+
+        &::before {
+            opacity: 0;
+            transition: opacity $transition-speed / 2;
+        }
+    
+        &::after {
+            transform: scaleX(1);
+        }
+    
+        svg {
+            transition: color $transition-speed / 2;
+        }
+    
+        > span {
+            transition: color $transition-speed * 0.6 $transition-speed * 0.1;
+        }
+    }
+}
+
