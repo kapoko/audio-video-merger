@@ -5,6 +5,7 @@ const AssetsPlugin = require("assets-webpack-plugin");
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 const StylelintPlugin = require('stylelint-webpack-plugin');
+const CopyPlugin = require('copy-webpack-plugin');
 
 module.exports = {
     mode: isDev ? 'development' : 'production',
@@ -59,6 +60,14 @@ module.exports = {
             path: path.join(__dirname, "data"),
             prettyPrint: true,
             removeFullPathAutoPrefix: true
+        }),
+        new CopyPlugin({
+            patterns: [
+              {
+                from: '../package.json',
+                to: '../data/packageCopy.json'
+              }
+            ],
         }),
         new MiniCssExtractPlugin({
             filename: '[name].[contenthash:8].css'

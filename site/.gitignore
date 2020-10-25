@@ -1,5 +1,6 @@
 dist/
 data/manifest.json
+data/packageCopy.json
 node_modules/
 public/
 resources/_gen

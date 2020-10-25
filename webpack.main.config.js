@@ -24,11 +24,7 @@ module.exports = {
     }),
     new CopyPlugin({
       patterns: [
-        'node_modules/ffmpeg-static/ffmpeg',
-        {
-          from: 'package.json',
-          to: '../../site/data/packageCopy.json'
-        }
+        'node_modules/ffmpeg-static/ffmpeg'
       ],
     }),
     new PermissionsOutputPlugin({
