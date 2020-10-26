@@ -10,5 +10,5 @@ library.add(faWindows, faApple, faGithub, faPaypal);
 dom.watch();
 
 domReady(() => {
-    console.log('Ready');
+    // Nothing yet
 });

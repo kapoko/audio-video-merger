@@ -1,11 +1,17 @@
 const isDev = process.env.NODE_ENV === 'development'
 
 const path = require("path");
+const glob = require('glob-all');
 const AssetsPlugin = require("assets-webpack-plugin");
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 const StylelintPlugin = require('stylelint-webpack-plugin');
 const CopyPlugin = require('copy-webpack-plugin');
+const PurgeCSSPlugin = require('purgecss-webpack-plugin')
+
+const purgeCSSPaths = glob.sync([
+    `${path.join(__dirname, 'layouts')}/**/*`
+], { mark: true }).filter(function(f) { return !/\/$/.test(f); });
 
 module.exports = {
     mode: isDev ? 'development' : 'production',
@@ -19,6 +25,18 @@ module.exports = {
     },
     resolve: {
         extensions: ['.ts', '.tsx', '.js']
+    },
+    optimization: isDev ? {} : {
+        splitChunks: {
+            cacheGroups: {
+                styles: {
+                    name: 'styles',
+                    test: /\.css$/,
+                    chunks: 'all',
+                    enforce: true
+                }
+            }
+        }
     },
     module: {
         rules: [
@@ -71,6 +89,9 @@ module.exports = {
         }),
         new MiniCssExtractPlugin({
             filename: '[name].[contenthash:8].css'
+        }),
+        new PurgeCSSPlugin({
+            paths: purgeCSSPaths
         }),
         new StylelintPlugin({
             fix: true
