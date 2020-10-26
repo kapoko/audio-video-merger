@@ -33,13 +33,7 @@ jobs:
         cd ./site
         npm run build
 
-    - name: Deploy to local repo
-      uses: peaceiris/actions-gh-pages@v3
-      with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        publish_dir: ./site/public
-
-    - name: Pushes to another repository
+    - name: Deploy static files to another repo
       uses: cpina/github-action-push-to-another-repository@master
       env:
         API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
