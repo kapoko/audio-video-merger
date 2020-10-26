@@ -1,6 +1,6 @@
 <img src="assets/logo.png" title="AudioVideoMerger" alt="AudioVideoMerger logo" width="128">
 
-# AudioVideoMerger
+# [AudioVideoMerger](https://audiovideomerger.github.io)
 
 [![](https://github.com/kapoko/audio-video-merger/workflows/Build/badge.svg)](https://github.com/kapoko/audio-video-merger/actions)
 [![](https://github.com/kapoko/audio-video-merger/workflows/Release/badge.svg)](https://github.com/kapoko/audio-video-merger/actions)
@@ -26,4 +26,4 @@ Runs on macOS 10.10 (Yosemite) or higher.
 
 ## Download ⬇️
 
-Head over to the [releases](https://github.com/kapoko/audio-video-merger/releases) page to download the latest version.
+Head over to [audiovideomerger.github.io](https://audiovideomerger.github.io) to download the latest version.
