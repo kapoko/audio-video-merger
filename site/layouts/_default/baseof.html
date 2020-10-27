@@ -11,6 +11,7 @@
         {{ partial "head/favicons.html" . }}
         {{ partial "head/metadata.html" . }}
         {{ partial "head/og.html" . }}
+        {{ partial "head/analytics.html" . }}
 
         {{ $script := .Site.Data.manifest.main }}
         {{ with $script.css }}
