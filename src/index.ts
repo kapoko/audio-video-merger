@@ -164,10 +164,28 @@ function processVideo(options: SingleProcessOptions, totalBytesProcessed: number
 
 ipcMain.on('merge', async (event, input: ProcessFilesRequest) => {
     const { videoList, audioList } = input;
+    let checksFailed = false;
     
     const processChain: SingleProcessOptions[] = [];
     let yesToAll = false;
     let noToAll = false;
+
+    // Pre-render checks
+    audioList.forEach(audio => {
+        const filename = path.basename(audio.path, path.extname(audio.path));
+        if (videoList.map(video => path.basename(video.path, path.extname(video.path))).includes(filename)) {
+            dialog.showMessageBoxSync(mainWindow, {
+                type: 'error',
+                message: `Trying to convert ${path.basename(audio.path)} but a video with the same name is being used as a source file. Please rename the source video.`
+            });
+            event.reply('merge:cancel');
+            checksFailed = true;
+        }
+    })
+
+    if (checksFailed) {
+        return;
+    }
     
     // Loop over all videos and audio
     videoList.forEach(video => {
@@ -176,9 +194,16 @@ ipcMain.on('merge', async (event, input: ProcessFilesRequest) => {
             const fileName = path.basename(audio.path, path.extname(audio.path)) + path.extname(video.path);
             const videoBaseName = path.basename(video.path, path.extname(video.path));
             
-            const output = videoList.length > 1 ? path.join(dir, videoBaseName + '_' + fileName) : path.join(dir, fileName);
-            
-            if (fs.existsSync(output) && !yesToAll && !noToAll) {  
+            const output = videoList.length > 1 ? path.join(dir, videoBaseName + '_' + fileName) : path.join(dir, fileName);            
+
+            // Check if file already exists
+            if (fs.existsSync(output) && !yesToAll && !noToAll) {
+
+                // Check if trying to write over a file that's used as a source file
+                if (path.basename(video.path) === path.basename(output)) {
+                    console.log('yeaa');
+                }
+
                 const result: number = dialog.showMessageBoxSync(mainWindow, {
                     type: 'question',
                     message: 'The file ' + path.basename(output) + ' already exists in the source folder. Overwrite it?',
