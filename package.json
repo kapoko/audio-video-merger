@@ -1,7 +1,7 @@
 {
   "name": "audio-video-merger",
   "productName": "audio-video-merger",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "A tool for painlessly replacing audio under video files",
   "main": ".webpack/main",
   "scripts": {
