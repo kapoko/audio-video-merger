@@ -34,7 +34,7 @@ jobs:
         npm run build
 
     - name: Deploy static files to another repo
-      uses: cpina/github-action-push-to-another-repository@master
+      uses: cpina/github-action-push-to-another-repository@main
       env:
         API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
       with:
