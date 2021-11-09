@@ -11,6 +11,7 @@
     "publish": "run-p lint test && electron-forge publish",
     "lint": "eslint --ext .ts,.tsx src/",
     "lint:fix": "eslint --ext .ts,.tsx src/ --fix",
+    "lint-styles": "stylelint src/styles/*.scss",
     "rebuild": "electron-rebuild -f -w ffmpeg-static ffprobe-static",
     "test": "ava"
   },
@@ -97,6 +98,7 @@
   },
   "stylelint": {
     "extends": "stylelint-config-standard-scss",
+    "customSyntax": "postcss-scss",
     "rules": {
       "max-nesting-depth": 2,
       "indentation": 4
