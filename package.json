@@ -83,18 +83,15 @@
     }
   },
   "ava": {
-    "typescript": {
-      "extensions": [
-        "ts",
-        "tsx"
-      ],
-      "rewritePaths": {
-        "src/": ".webpack/"
-      }
+    "extensions": {
+        "ts": "module"
     },
-    "require": [
-      "ts-node/register"
-    ]
+    "nodeArguments": [
+        "--loader=ts-node/esm"
+    ],
+    "nonSemVerExperiments": {
+        "configurableModuleFormat": true
+    }
   },
   "stylelint": {
     "extends": "stylelint-config-standard-scss",
