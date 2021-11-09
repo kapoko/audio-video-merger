@@ -25,7 +25,7 @@
 }
 
 .hero-video {
-    $video-ratio: 862 / 1279; // Dimensions of the video h x w
+    $video-ratio: 862 / 1279; /* Dimensions of the video h x w */
 
     background: #ccc;
     overflow: hidden;

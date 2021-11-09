@@ -1,11 +1,12 @@
-@import 'variables';
+@import "variables";
 
 .drop-zone {
     $margin: 1.2rem;
     $border-width: 10px;
+
     background-color: #fff;
     border-radius: 0.4rem;
-    box-shadow: 0 2px 6px 0 rgba(0, 0, 0, 0.15);
+    box-shadow: 0 2px 6px 0 rgb(0 0 0 / 15%);
     display: flex;
     flex-grow: 1;
     margin: $margin;
@@ -14,7 +15,7 @@
     position: relative;
     transition: box-shadow 0.3s, background-color 0.15s;
     width: calc(100% - #{$margin * 2} - #{$border-width * 2});
-    
+
     .gradient-border {
         animation: moveGradient 2s alternate infinite;
         background: linear-gradient(60deg, $secondary 0%, $primary 100%);
@@ -41,11 +42,11 @@
         width: 100%;
         z-index: 1;
     }
-    
+
     &.is-dragging {
         background: #f5f5f5;
         border-color: #aaa;
-        box-shadow: 0 2px 15px 0 rgba(0, 0, 0, 0.3);
+        box-shadow: 0 2px 15px 0 rgb(0 0 0 / 30%);
 
         .inner {
             border-color: transparent;
@@ -67,7 +68,7 @@
     }
 }
 
-@keyframes moveGradient {
+@keyframes move-gradient {
     50% {
         background-position: 100% 50%;
     }

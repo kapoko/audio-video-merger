@@ -99,7 +99,7 @@
         }
     
         &::after {
-            transform: scaleX(0.9999); // Instead of 1, prevents pixel shift in Chrome
+            transform: scaleX(0.9999); /* Instead of 1, prevents pixel shift in Chrome */
         }
     
         svg {

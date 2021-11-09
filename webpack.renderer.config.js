@@ -7,7 +7,7 @@ rules.push({
   use: [
     'style-loader',
     'css-loader',
-    'sass-loader',
+    'sass-loader'
   ],
 });
 
@@ -15,7 +15,7 @@ module.exports = {
   module: {
     rules,
   },
-  target: 'electron-renderer',
+  target: 'web',
   plugins: [
     new ForkTsCheckerWebpackPlugin(),
     new StylelintPlugin({
@@ -23,6 +23,6 @@ module.exports = {
     }),
   ],
   resolve: {
-    extensions: ['.js', '.ts', '.jsx', '.tsx', '.css']
+    extensions: ['.js', '.ts', '.jsx', '.tsx', '.css', '.scss']
   },
 };

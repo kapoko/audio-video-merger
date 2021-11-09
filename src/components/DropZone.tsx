@@ -2,7 +2,7 @@ import React, { useState, useEffect, useReducer } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faFolderOpen } from '@fortawesome/free-solid-svg-icons'
 import { FileInfo } from '../lib/interfaces';
-import { RippleIcon } from './withRipple';
+import { RippleButton } from './RippleButton';
 
 export interface DropZoneProps {
     onDropFiles(files: FileList): void
@@ -89,11 +89,11 @@ const DropZone: React.FunctionComponent<DropZoneProps> = (props: DropZoneProps) 
                     ? <h1>Drop audio and video files here</h1>
                     : <h1>{ quotes[quoteIndex] }</h1>
                 }
-                <RippleIcon className="mdc-fab" aria-label="Open files" onClick={handleClick}>
+                <RippleButton className="mdc-fab" onClick={handleClick}>
                     <span className="mdc-fab__icon">
                         <FontAwesomeIcon icon={faFolderOpen} />
                     </span>
-                </RippleIcon>
+                </RippleButton>
             </div>
         </div>
     );

@@ -2,12 +2,11 @@ import * as path from 'path';
 import * as fs from 'fs';
 import * as ffmpeg from 'fluent-ffmpeg';
 import * as mime from 'mime-types';
-import { app, BrowserWindow, ipcMain, dialog } from 'electron';
+import { app, BrowserWindow, ipcMain, dialog , IpcMainEvent } from 'electron';
+import * as remoteMain from '@electron/remote/main';
 import { ProcessFilesRequest, SingleProcessOptions, ProcessResult, FileInfo } from './lib/interfaces';
 import { getSeconds } from './lib/helpers'
-import { IpcMainEvent } from 'electron/main';
 import debounce from 'lodash/debounce';
-
 
 //Get the paths to the packaged versions of the binaries we want to use
 import ffmpegPath from 'ffmpeg-static'
@@ -27,6 +26,8 @@ let openFiles: FileInfo[] = []
 const gotTheLock = app.requestSingleInstanceLock()
 const enableDevTools = !app.isPackaged
 
+remoteMain.initialize();
+
 const createWindow = (): void => {
     // Create the browser window.
     mainWindow = new BrowserWindow({
@@ -36,13 +37,13 @@ const createWindow = (): void => {
         show: false,
         webPreferences: {
             nodeIntegration: false,
-            enableRemoteModule: false,
-            worldSafeExecuteJavaScript: true,
             contextIsolation: true,
             preload: MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY,
             devTools: enableDevTools
         }
     });
+
+    remoteMain.enable(mainWindow.webContents);
     
     mainWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY);
     
@@ -92,7 +93,7 @@ app.on('open-file', (event, path: string) => {
 if (!gotTheLock) {
     app.quit()
 } else {
-    app.on('second-instance', (event, argv, workingDirectory) => {
+    app.on('second-instance', () => {
         // Someone tried to run a second instance, we should focus our window.
         if (mainWindow) {
             if (mainWindow.isMinimized()) mainWindow.restore()

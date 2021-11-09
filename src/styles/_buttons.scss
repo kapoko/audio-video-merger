@@ -1,18 +1,16 @@
-@use '@material/fab';
-@use '@material/ripple';
-@import '@material/react-ripple/index';
-
-@import 'variables';
+@use "@material/fab";
+@use "@material/ripple";
+@import "variables";
 @include fab.core-styles;
 
 .ripple-icon-component {
-    @include mdc-ripple-surface;
-    @include mdc-ripple-radius-bounded;
-    @include mdc-states;
     @include ripple.states-base-color(#fff);
     @include ripple.states-opacities((hover: 0.1, focus: 0.3, press: 0.4));
     @include ripple.surface;
+    @include ripple.radius-bounded;
+    @include ripple.states;
     @include fab.container-color($primary);
+
     background: linear-gradient(45deg, $secondary 0%, $primary 80%);
     overflow: hidden;
 }
