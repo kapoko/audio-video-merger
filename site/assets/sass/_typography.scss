@@ -8,3 +8,10 @@ h6 {
     font-weight: $font-weight-bold;
 }
 
+a {
+    text-decoration: none;
+
+    &:hover {
+        text-decoration: underline;
+    }
+}

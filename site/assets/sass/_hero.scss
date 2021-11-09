@@ -1,3 +1,5 @@
+@use "sass:math";
+
 .hero {
     align-items: center;
     display: flex;
@@ -25,24 +27,24 @@
 }
 
 .hero-video {
-    $video-ratio: 862 / 1279; /* Dimensions of the video h x w */
+    $video-ratio: math.div(862, 1279); /* Dimensions of the video h x w */
 
     background: #ccc;
     overflow: hidden;
     position: relative;
 
     @include media-breakpoint-up(lg) {
-        margin-right: calc(100% - 50vw + #{$grid-gutter-width / 2});
-        padding-bottom: calc((50vw - #{$grid-gutter-width / 2}) * #{$video-ratio});
+        margin-right: calc(100% - 50vw + #{$grid-gutter-width * 0.5});
+        padding-bottom: calc((50vw - #{$grid-gutter-width * 0.5}) * #{$video-ratio});
     }
-    
+
     @include media-breakpoint-down(md) {
         padding-bottom: calc(100% * #{$video-ratio});
     }
 
     @include media-breakpoint-down(xs) {
-        margin-left: -$grid-gutter-width / 2;
-        margin-right: -$grid-gutter-width / 2;
+        margin-left: -$grid-gutter-width * 0.5;
+        margin-right: -$grid-gutter-width * 0.5;
         padding-bottom: calc(100vw * #{$video-ratio});
     }
 
