@@ -1,7 +1,7 @@
 {
   "name": "audio-video-merger",
   "productName": "audio-video-merger",
-  "version": "1.0.6",
+  "version": "1.1.0",
   "description": "A tool for painlessly replacing audio under video files",
   "main": ".webpack/main",
   "scripts": {
@@ -84,13 +84,13 @@
   },
   "ava": {
     "extensions": {
-        "ts": "module"
+      "ts": "module"
     },
     "nodeArguments": [
-        "--loader=ts-node/esm"
+      "--loader=ts-node/esm"
     ],
     "nonSemVerExperiments": {
-        "configurableModuleFormat": true
+      "configurableModuleFormat": true
     }
   },
   "stylelint": {
