@@ -191,7 +191,7 @@ ipcMain.on('merge', async (event, input: ProcessFilesRequest) => {
     // Loop over all videos and audio
     videoList.forEach(video => {
         audioList.forEach(audio => {
-            const dir = path.dirname(video.path);
+            const dir = path.dirname(audio.path);
             const fileName = path.basename(audio.path, path.extname(audio.path)) + path.extname(video.path);
             const videoBaseName = path.basename(video.path, path.extname(video.path));
             
