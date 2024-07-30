@@ -18,12 +18,8 @@ import debounce from "lodash/debounce";
 import ffmpegPath from "ffmpeg-static";
 import ffprobePath from "ffprobe-static";
 
-declare const MAIN_WINDOW_WEBPACK_ENTRY: string;
-declare const MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY: string;
-
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (require("electron-squirrel-startup")) {
-    // eslint-disable-line global-require
     app.quit();
 }
 
@@ -45,14 +41,20 @@ const createWindow = (): void => {
         webPreferences: {
             nodeIntegration: false,
             contextIsolation: true,
-            preload: MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY,
+            preload: path.join(__dirname, "preload.js"),
             devTools: enableDevTools,
         },
     });
 
     remoteMain.enable(mainWindow.webContents);
 
-    mainWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY);
+    if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
+        mainWindow.loadURL(MAIN_WINDOW_VITE_DEV_SERVER_URL);
+    } else {
+        mainWindow.loadFile(
+            path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/index.html`),
+        );
+    }
 
     if (enableDevTools) {
         mainWindow.webContents.openDevTools();
@@ -115,7 +117,10 @@ if (!gotTheLock) {
     });
 
     // Create myWindow, load the rest of the app, etc...
-    app.on("ready", createWindow);
+    //app.on("ready", createWindow);
+    app.whenReady().then(() => {
+        createWindow();
+    });
 }
 
 app.on("window-all-closed", () => {
@@ -243,15 +248,15 @@ ipcMain.on("merge", async (event, input: ProcessFilesRequest) => {
                 });
 
                 switch (result) {
-                case 0: // Yes to all
-                    yesToAll = true;
-                    break;
-                case 1: // Yes (do nothing)
-                    break;
-                case 2: // Cancel
-                    event.reply("merge:cancel");
-                    noToAll = true;
-                    break;
+                    case 0: // Yes to all
+                        yesToAll = true;
+                        break;
+                    case 1: // Yes (do nothing)
+                        break;
+                    case 2: // Cancel
+                        event.reply("merge:cancel");
+                        noToAll = true;
+                        break;
                 }
             }
 

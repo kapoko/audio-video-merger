@@ -1,5 +1,7 @@
 import React, { useRef, useEffect } from 'react';
-import { MDCRipple} from '@material/ripple';
+import {MDCRipple} from '@material/ripple'
+
+import '@material/web/ripple/ripple'
 
 interface IconProps {
     children?: React.ReactNode;
@@ -25,10 +27,10 @@ export const RippleButton = (props: IconProps) => {
         
     return (
         <div
-            className={`ripple-icon-component ${className}`}
-            ref={rippleRef}
-            {...otherProps}>
-            {children}
+                className={`ripple-icon-component ${className}`}
+                ref={rippleRef}
+                {...otherProps}>
+                {children}
         </div>
     );
 };
