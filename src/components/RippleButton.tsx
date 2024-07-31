@@ -1,7 +1,6 @@
-import React, { useRef, useEffect } from 'react';
-import {MDCRipple} from '@material/ripple'
-
-import '@material/web/ripple/ripple'
+import * as React from "react";
+import Fab from "@mui/material/Fab";
+import FolderOpen from "@mui/icons-material/folderOpen";
 
 interface IconProps {
     children?: React.ReactNode;
@@ -10,27 +9,17 @@ interface IconProps {
 }
 
 export const RippleButton = (props: IconProps) => {
+    const { children, className = "", ...otherProps } = props;
 
-    const rippleRef = useRef<HTMLDivElement>(null);
-
-    useEffect(() => {
-        if (rippleRef.current) {
-            new MDCRipple(rippleRef.current);
-        }
-    }, [])
-
-    const {
-        children,
-        className = '',
-        ...otherProps
-    } = props;
-        
     return (
-        <div
-                className={`ripple-icon-component ${className}`}
-                ref={rippleRef}
-                {...otherProps}>
-                {children}
-        </div>
+        <Fab
+            className={`fab ${className}`}
+            color="primary"
+            aria-label="add"
+            {...otherProps}
+        >
+            <FolderOpen />
+            {children}
+        </Fab>
     );
 };

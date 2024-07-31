@@ -14,3 +14,11 @@
     background: linear-gradient(45deg, $secondary 0%, $primary 80%);
     overflow: hidden;
 }
+
+    button.fab {
+        bottom: 2.4rem;
+        position: absolute;
+        right: 2.4rem;
+        background: linear-gradient(45deg, $secondary 0%, $primary 80%);
+    }
+

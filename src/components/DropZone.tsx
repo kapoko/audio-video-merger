@@ -89,11 +89,7 @@ const DropZone: React.FunctionComponent<DropZoneProps> = (props: DropZoneProps) 
                     ? <h1>Drop audio and video files here</h1>
                     : <h1>{ quotes[quoteIndex] }</h1>
                 }
-                <RippleButton className="mdc-fab" onClick={handleClick}>
-                    <span className="mdc-fab__icon">
-                        <FontAwesomeIcon icon={faFolderOpen} />
-                    </span>
-                </RippleButton>
+                <RippleButton className="mdc-fab" onClick={handleClick} />
             </div>
         </div>
     );
