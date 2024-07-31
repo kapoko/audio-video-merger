@@ -1,21 +1,19 @@
 {
-    "compilerOptions": {
-        "target": "ESNext",
-        "module": "commonjs",
-        "allowJs": true,
-        "skipLibCheck": true,
-        "esModuleInterop": true,
-        "jsx": "react",
-        "allowSyntheticDefaultImports": true,
-        "noImplicitAny": true,
-        "sourceMap": true,
-        "baseUrl": ".",
-        "outDir": "dist",
-        "moduleResolution": "node",
-        "resolveJsonModule": true
-    },
-    
-    "exclude": [
-        "node_modules"
-    ]
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "es2022",
+    "allowJs": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "jsx": "react",
+    "allowSyntheticDefaultImports": true,
+    "noImplicitAny": true,
+    "sourceMap": true,
+    "baseUrl": ".",
+    "outDir": "dist",
+    "moduleResolution": "node",
+    "resolveJsonModule": true
+  },
+
+  "exclude": ["node_modules"]
 }
