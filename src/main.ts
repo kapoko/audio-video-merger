@@ -117,10 +117,9 @@ if (!gotTheLock) {
   });
 
   // Create myWindow, load the rest of the app, etc...
-  //app.on("ready", createWindow);
-  app.whenReady().then(() => {
-    createWindow();
-  });
+  app.whenReady().then(
+    createWindow
+  );
 }
 
 app.on("window-all-closed", () => {
