@@ -26,8 +26,9 @@ jobs:
       - name: NPM install
         run: npm ci
 
+      - name: Make
+        run: npm run make
+
       - name: Test
         run: npm test
 
-      - name: Make
-        run: npm run make
