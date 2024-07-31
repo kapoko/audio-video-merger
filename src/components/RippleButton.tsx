@@ -1,4 +1,4 @@
-import * as React from "react";
+import type * as React from "react";
 import Fab from "@mui/material/Fab";
 import FolderOpen from "@mui/icons-material/folderOpen";
 

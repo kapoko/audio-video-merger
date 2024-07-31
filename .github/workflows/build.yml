@@ -26,6 +26,9 @@ jobs:
       - name: NPM install
         run: npm ci
 
+      - name: Lint
+        run: npm run lint
+
       - name: Make
         run: npm run make
 

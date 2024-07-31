@@ -1,7 +1,8 @@
-import React, { useState, useEffect, useReducer } from 'react';
+import type React from 'react';
+import { useState, useEffect, useReducer } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faFolderOpen } from '@fortawesome/free-solid-svg-icons'
-import { FileInfo } from '../lib/interfaces';
+import type { FileInfo } from '../lib/interfaces';
 import { RippleButton } from './RippleButton';
 
 export interface DropZoneProps {
@@ -83,7 +84,7 @@ const DropZone: React.FunctionComponent<DropZoneProps> = (props: DropZoneProps) 
             onDragOver={dragPreventDefault} 
             onDragEnter={handleDragEnter}
             onDragLeave={handleDragLeave}>
-            <div className="gradient-border"></div>
+            <div className="gradient-border"/>
             <div className="inner">
                 { !dragging
                     ? <h1>Drop audio and video files here</h1>

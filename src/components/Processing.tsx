@@ -1,4 +1,4 @@
-import React from 'react';
+import type React from 'react';
 
 export interface ProcessingProps {
     progress: number
@@ -23,6 +23,7 @@ const Processing: React.FunctionComponent<ProcessingProps> = (props: ProcessingP
         <>
             <div className="progress-ring" style={progressRingStyles}>
                 <svg className="ring" height={ radius * 2 + strokeWidth } width={ radius * 2 + strokeWidth }>
+                    <title>Processing ring</title>
                     <defs>
                         <linearGradient id="gradient" x1="0%" y1="0%" x2="0%" y2="100%">
                             <stop offset="0%" stopColor="#fbc50c" />

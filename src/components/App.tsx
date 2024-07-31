@@ -1,16 +1,17 @@
-import React, { useEffect, useState, useCallback, useRef } from 'react';
+import type React from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { SwitchTransition, CSSTransition } from "react-transition-group";
 import DropZone from './DropZone';
 import Processing from './Processing';
 import Complete from './Complete';
-import { ProcessFilesRequest, ProcessResult, FileInfo } from '../lib/interfaces';
+import type { ProcessFilesRequest, ProcessResult, FileInfo } from '../lib/interfaces';
 import { createRequestFromFileList, createRequestFromFileInfo } from '../lib/validateFiles';
 import { baseName } from '../lib/helpers';
 
 enum ScreenState {
-    SelectFiles,
-    Processing,
-    Complete
+    SelectFiles = 0,
+    Processing = 1,
+    Complete = 2
 }
 
 const App: React.FunctionComponent = () => {
@@ -42,7 +43,7 @@ const App: React.FunctionComponent = () => {
         setProcessComplete(false);
 
         if (!request.isValid) {
-            const message = `Found ${request.videoList.length} video${request.videoList.length !== 1 ? 's' : ''} and ${request.audioList.length} audiofile${request.audioList.length !== 1 ? 's' : ''} in your request. Please select at least one of both. ${request.unrecognized.length ? `(Unrecognized files: ` + request.unrecognized.map(file => `${baseName(file.path)})`) : ''}`
+            const message = `Found ${request.videoList.length} video${request.videoList.length !== 1 ? 's' : ''} and ${request.audioList.length} audiofile${request.audioList.length !== 1 ? 's' : ''} in your request. Please select at least one of both. ${request.unrecognized.length ? `(Unrecognized files: ${request.unrecognized.map(file => baseName(file.path))}` : ''}`
 
             window.api.send('showDialog', {
                 message: message

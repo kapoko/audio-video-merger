@@ -1,4 +1,4 @@
-import { ProcessFilesRequest, FileInfo } from './interfaces';
+import type { ProcessFilesRequest, FileInfo } from './interfaces';
 
 function createRequest(files: FileInfo[]): ProcessFilesRequest {
     const result: ProcessFilesRequest = { 

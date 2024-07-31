@@ -1,5 +1,5 @@
-import * as path from "path";
-import * as fs from "fs";
+import * as path from "node:path";
+import * as fs from "node:fs";
 import * as ffmpeg from "fluent-ffmpeg";
 import * as mime from "mime-types";
 import { app, ipcMain, dialog, BrowserWindow } from "electron";
@@ -165,11 +165,9 @@ function processVideo(
       .input(options.video.path)
       .addInput(options.audio.path)
       .outputOptions(["-c:v copy", "-map 0:v:0", "-map 1:a:0"])
-      .on(
-        "codecData",
-        (data) =>
-          (duration = data.video_details ? getSeconds(data.duration) : false),
-      )
+      .on("codecData", (data) => {
+        duration = data.video_details ? getSeconds(data.duration) : false;
+      })
       .on("end", resolve)
       .on("error", (error) => reject(error.message))
       .on("progress", (progress) => {
@@ -197,7 +195,7 @@ ipcMain.on("merge", async (event, input: ProcessFilesRequest) => {
   let noToAll = false;
 
   // Pre-render checks
-  audioList.forEach((audio) => {
+  for (audio of audioList) {
     const filename = path.basename(audio.path, path.extname(audio.path));
     if (
       videoList
@@ -211,15 +209,15 @@ ipcMain.on("merge", async (event, input: ProcessFilesRequest) => {
       event.reply("merge:cancel");
       checksFailed = true;
     }
-  });
+  }
 
   if (checksFailed) {
     return;
   }
 
   // Loop over all videos and audio
-  videoList.forEach((video) => {
-    audioList.forEach((audio) => {
+  for (video of videoList) {
+    for (audio of audioList) {
       const dir = path.dirname(audio.path);
       const fileName =
         path.basename(audio.path, path.extname(audio.path)) +
@@ -228,7 +226,7 @@ ipcMain.on("merge", async (event, input: ProcessFilesRequest) => {
 
       const output =
         videoList.length > 1
-          ? path.join(dir, videoBaseName + "_" + fileName)
+          ? path.join(dir, `${videoBaseName}_${fileName}`)
           : path.join(dir, fileName);
 
       // Check if file already exists
@@ -240,10 +238,7 @@ ipcMain.on("merge", async (event, input: ProcessFilesRequest) => {
 
         const result: number = dialog.showMessageBoxSync(mainWindow, {
           type: "question",
-          message:
-            "The file " +
-            path.basename(output) +
-            " already exists in the source folder. Overwrite it?",
+          message: `The file ${path.basename(output)} already exists in the source folder. Overwrite it?`,
           buttons: ["Yes to all", "Yes", "Cancel"],
         });
 
@@ -266,8 +261,8 @@ ipcMain.on("merge", async (event, input: ProcessFilesRequest) => {
         output,
         bytes: audio.size + video.size,
       });
-    });
-  });
+    }
+  }
 
   if (noToAll) {
     return;
@@ -281,7 +276,7 @@ ipcMain.on("merge", async (event, input: ProcessFilesRequest) => {
 
   // Gather total bytesize to process for making an estimation on the progress
   const totalBytes: number = processChain.reduce(
-    (total, process) => (total += process.bytes),
+    (total, process) => total + process.bytes,
     0,
   );
   let bytesProcessed = 0;

@@ -10,7 +10,7 @@ export function getSeconds(durationString:string): number | false {
         return false;
     }
 
-    return parseInt(m[1]) * 60 * 60 + parseInt(m[2]) * 60 + parseInt(m[3]);
+    return Number.parseInt(m[1]) * 60 * 60 + Number.parseInt(m[2]) * 60 + Number.parseInt(m[3]);
 }
 
 /**

@@ -25,11 +25,14 @@ jobs:
       - name: NPM install
         run: npm ci
 
-      - name: Test
-        run: npm test
+      - name: Lint
+        run: npm run lint
 
       - name: Make
         run: npm run make
+
+      - name: Test
+        run: npm test
 
       - name: Release
         uses: "marvinpinto/action-automatic-releases@v1.1.1"

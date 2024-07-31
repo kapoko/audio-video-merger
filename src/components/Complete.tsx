@@ -1,5 +1,5 @@
-import React from 'react';
-import { ProcessResult } from '../lib/interfaces';
+import type React from 'react';
+import type { ProcessResult } from '../lib/interfaces';
 
 export interface CompleteProps {
     result: ProcessResult
