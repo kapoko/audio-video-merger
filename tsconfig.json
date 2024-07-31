@@ -6,12 +6,15 @@
     "skipLibCheck": true,
     "esModuleInterop": true,
     "jsx": "react",
-"allowSyntheticDefaultImports": true,
+    "allowSyntheticDefaultImports": true,
     "noImplicitAny": true,
     "sourceMap": true,
     "baseUrl": ".",
     "outDir": "dist",
     "moduleResolution": "node",
-    "resolveJsonModule": true
-  }
+    "resolveJsonModule": true,
+    "types": ["@wdio/globals/types", "mocha"],
+  },
+  "include": ["src/main.ts", "src/preload.ts"],
+  "exclude": ["node_modules"]
 }

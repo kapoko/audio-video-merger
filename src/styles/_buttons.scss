@@ -1,24 +1,9 @@
-@use "@material/fab";
-@use "@material/ripple";
 @import "variables";
-@include fab.core-styles;
 
-.ripple-icon-component {
-    @include ripple.states-base-color(#fff);
-    @include ripple.states-opacities((hover: 0.1, focus: 0.3, press: 0.4));
-    @include ripple.surface;
-    @include ripple.radius-bounded;
-    @include ripple.states;
-    @include fab.container-color($primary);
-
+button.fab {
+    bottom: 2.4rem;
+    position: absolute;
+    right: 2.4rem;
     background: linear-gradient(45deg, $secondary 0%, $primary 80%);
-    overflow: hidden;
 }
-
-    button.fab {
-        bottom: 2.4rem;
-        position: absolute;
-        right: 2.4rem;
-        background: linear-gradient(45deg, $secondary 0%, $primary 80%);
-    }
 

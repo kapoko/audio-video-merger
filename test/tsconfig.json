@@ -1,0 +1,6 @@
+{
+  "compilerOptions": {
+    "types": ["@wdio/globals/types", "wdio-electron-service", "mocha"]
+  },
+  "include": ["**/*.ts"]
+}
