@@ -195,7 +195,7 @@ ipcMain.on("merge", async (event, input: ProcessFilesRequest) => {
   let noToAll = false;
 
   // Pre-render checks
-  for (audio of audioList) {
+  for (const audio of audioList) {
     const filename = path.basename(audio.path, path.extname(audio.path));
     if (
       videoList
@@ -216,8 +216,8 @@ ipcMain.on("merge", async (event, input: ProcessFilesRequest) => {
   }
 
   // Loop over all videos and audio
-  for (video of videoList) {
-    for (audio of audioList) {
+  for (const video of videoList) {
+    for (const audio of audioList) {
       const dir = path.dirname(audio.path);
       const fileName =
         path.basename(audio.path, path.extname(audio.path)) +
