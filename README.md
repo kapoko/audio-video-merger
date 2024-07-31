@@ -2,8 +2,8 @@
 
 # [AudioVideoMerger](https://audiovideomerger.github.io)
 
-[![](https://github.com/kapoko/audio-video-merger/workflows/Build/badge.svg)](https://github.com/kapoko/audio-video-merger/actions)
-[![](https://github.com/kapoko/audio-video-merger/workflows/Release/badge.svg)](https://github.com/kapoko/audio-video-merger/actions)
+[![](https://github.com/kapoko/audio-video-merger/workflows/Build/badge.svg?branch=main)](https://github.com/kapoko/audio-video-merger/actions)
+[![](https://github.com/kapoko/audio-video-merger/workflows/Release/badge.svg?branch=main)](https://github.com/kapoko/audio-video-merger/actions)
 
 AudioVideoMerger is a tool for painlessly replacing audio under video files.
 
