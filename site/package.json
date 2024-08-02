@@ -19,24 +19,12 @@
   },
   "license": "GPL-3.0",
   "browserslist": {
-    "production": [
-      "defaults"
-    ],
-    "development": [
-      "last 1 chrome version",
-      "last 1 firefox version"
-    ]
+    "production": ["defaults"],
+    "development": ["last 1 chrome version", "last 1 firefox version"]
   },
   "stylelint": {
     "extends": "stylelint-config-standard-scss",
-    "rules": {
-      "indentation": 4,
-      "max-nesting-depth": 2
-    },
-    "ignoreFiles": [
-      "public/*",
-      "dist/*"
-    ]
+    "ignoreFiles": ["public/*", "dist/*"]
   },
   "devDependencies": {
     "assets-webpack-plugin": "^7.1.1",

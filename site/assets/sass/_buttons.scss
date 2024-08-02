@@ -21,6 +21,7 @@
     cursor: pointer;
     display: flex;
     flex-direction: row;
+    flex: 1 1 0;
     font-family: $font-family-headers;
     font-size: 1.5em;
     font-weight: $font-weight-bold;
@@ -34,32 +35,22 @@
         text-decoration: none;
     }
 
-    &:not(:last-child) {
-        margin-right: 0.5em;
-    }
-
     &::before {
         background-color: #000;
-        bottom: 0;
+        inset: 0;
         content: "";
         display: block;
-        left: 0;
         position: absolute;
-        right: 0;
-        top: 0;
         transition: opacity $transition-speed;
         z-index: 0;
     }
 
     &::after {
         background-color: #fff;
-        bottom: $border-width;
+        inset: $border-width $border-width $border-width $border-width;
         content: "";
         display: block;
-        left: $border-width;
         position: absolute;
-        right: $border-width;
-        top: $border-width;
         transform: scaleX(0);
         transform-origin: 0 50%;
         transition: cubic-bezier(0.33, 1, 0.68, 1) transform $transition-speed;
@@ -76,6 +67,10 @@
     small {
         font-size: 0.5em;
         font-weight: $font-weight-normal;
+    }
+    
+    .version {
+        margin-top: -0.3em
     }
 
     > span {
@@ -97,7 +92,7 @@
         color: #000;
 
         &::before {
-            opacity: 0%;
+            opacity: 0;
             transition: opacity math.div($transition-speed, 2);
         }
 
