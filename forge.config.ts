@@ -1,3 +1,4 @@
+import type { ForgeConfig } from "@electron-forge/shared-types";
 import { MakerSquirrel } from "@electron-forge/maker-squirrel";
 import { MakerZIP } from "@electron-forge/maker-zip";
 import { MakerDeb } from "@electron-forge/maker-deb";
@@ -6,14 +7,14 @@ import { VitePlugin } from "@electron-forge/plugin-vite";
 import { FusesPlugin } from "@electron-forge/plugin-fuses";
 import { FuseV1Options, FuseVersion } from "@electron/fuses";
 
-const config = {
+const config: ForgeConfig = {
     packagerConfig: {
         icon: "assets/logo",
         extendInfo: "assets/Info.plist",
         name: "AudioVideoMerger",
         osxSign: {},
         asar: {
-            unpack: ["**/.vite/build/static/ffmpeg", "**/.vite/build/static/ffprobe"],
+            unpack: "**/.vite/build/static/**",
         },
         ignore: (path) => {
             if (!path) return false;
@@ -36,7 +37,7 @@ const config = {
                 {
                     // `entry` is just an alias for `build.lib.entry` in the corresponding file of `config`.
                     entry: "src/main.ts",
-                    config: "vite.main.config.ts",
+                    config: "vite.main.config.mts",
                 },
                 {
                     entry: "src/preload.ts",

@@ -1,5 +1,5 @@
 import type { ConfigEnv, UserConfig } from "vite";
-import { viteStaticCopy } from "vite-plugin-static-copy";
+import { viteStaticCopy } from "vite-plugin-static-copy"
 import { defineConfig, mergeConfig } from "vite";
 import {
     getBuildConfig,
@@ -18,7 +18,7 @@ export default defineConfig((env) => {
             lib: {
                 entry: forgeConfigSelf.entry!,
                 fileName: () => "[name].js",
-                formats: ["es"],
+                formats: ["cjs"],
             },
             rollupOptions: {
                 external,
@@ -27,16 +27,16 @@ export default defineConfig((env) => {
         plugins: [
             pluginHotRestart("restart"),
             viteStaticCopy({
-                targets: [
-                    {
-                        src: "node_modules/ffmpeg-static/ffmpeg",
-                        dest: "static",
-                    },
-                    {
-                        src: "node_modules/ffprobe-static/bin/darwin/x64/ffprobe",
-                        dest: "static",
-                    },
-                ],
+              targets: [
+                {
+                  src: "node_modules/ffmpeg-static/ffmpeg",
+                  dest: "static",
+                },
+                {
+                  src: "node_modules/ffprobe-static/bin/darwin/x64/ffprobe",
+                  dest: "static",
+                },
+              ],
             }),
         ],
         define,
