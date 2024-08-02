@@ -2,6 +2,8 @@ name: Release
 
 on:
   push:
+    branches:
+      - dev
     tags:
       - "v*"
 
@@ -26,6 +28,6 @@ jobs:
       - name: Release
         uses: softprops/action-gh-release@v2
         with:
-          prerelease: contains(github.ref_name, 'beta')
+          prerelease: true 
           files: |
             dist/*/**.zip
