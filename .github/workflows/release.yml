@@ -25,11 +25,9 @@ jobs:
         with:
           path: dist
 
-      - run: echo ${{ github.ref }}
-
       - name: Release
         uses: softprops/action-gh-release@v2
         with:
-          prerelease: contains(github.ref, 'beta')
+          prerelease: ${{ contains(github.ref, 'beta') }}
           files: |
             dist/*/**.zip
