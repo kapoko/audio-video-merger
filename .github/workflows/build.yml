@@ -8,12 +8,13 @@ on:
       - dev
 
 jobs:
-  build-x64:
+  build:
     runs-on: ${{ matrix.os }}
 
     strategy:
       matrix:
         os: [macos-latest]
+        arch: [x64, arm64]
 
     steps:
       - name: Checking out 
@@ -25,13 +26,13 @@ jobs:
           node-version: 20
 
       - name: NPM install
-        run: npm ci --arch=x64
+        run: npm ci --arch=${{ matrix.arch }}
 
       - name: Lint
         run: npm run lint
 
       - name: Make
-        run: npm run make -- --arch=x64
+        run: npm run make -- --arch=${{ matrix.arch }}
 
       - name: Test
         run: npm test
@@ -39,39 +40,7 @@ jobs:
       - name: Upload build files
         uses: actions/upload-artifact@v4
         with:
-          name: zip-x64
-          path: ./out/make/zip/darwin/x64/*.zip
+          name: AudioVideoMerger-${{ matrix.arch }}
+          path: ./out/make/zip/darwin/${{ matrix.arch }}/*.zip
+          compression-level: 0
 
-  build-arm64:
-    runs-on: ${{ matrix.os }}
-
-    strategy:
-      matrix:
-        os: [macos-latest]
-
-    steps:
-      - name: Checking out 
-        uses: actions/checkout@v4
-
-      - name: Setup node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-
-      - name: NPM install
-        run: npm ci --arch=arm64
-
-      - name: Lint
-        run: npm run lint
-
-      - name: Make
-        run: npm run make -- --arch=arm64
-
-      - name: Test
-        run: npm test
-
-      - name: Upload build files
-        uses: actions/upload-artifact@v4
-        with:
-          name: zip-arm64
-          path: ./out/make/zip/darwin/arm64/*.zip
