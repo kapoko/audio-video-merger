@@ -1,6 +1,7 @@
 name: Build
 
 on:
+  workflow_call:
   push:
     branches:
       - main
@@ -35,6 +36,12 @@ jobs:
       - name: Test
         run: npm test
 
+      - name: Upload build files
+        uses: actions/upload-artifact@v4
+        with:
+          name: zip-x64
+          path: ./out/make/zip/darwin/x64/*.zip
+
   build-arm64:
     runs-on: ${{ matrix.os }}
 
@@ -63,3 +70,8 @@ jobs:
       - name: Test
         run: npm test
 
+      - name: Upload build files
+        uses: actions/upload-artifact@v4
+        with:
+          name: zip-arm64
+          path: ./out/make/zip/darwin/arm64/*.zip
