@@ -40,7 +40,7 @@ jobs:
       - name: Upload build files
         uses: actions/upload-artifact@v4
         with:
-          name: AudioVideoMerger-${{ matrix.arch }}
+          name: zip-${{ matrix.arch }}
           path: ./out/make/zip/darwin/${{ matrix.arch }}/*.zip
           compression-level: 0
 
