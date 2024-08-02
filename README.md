@@ -22,7 +22,7 @@ I work in audio for video and we (and our clients) constantly put new versions o
 
 ## Note on verification
 
-This app isn't codesigend because it isn't registered through Apple's Developer program. This is why you see the message `“AudioVideoMerger.app” cannot be opened because the developer cannot be verified.` when opening the app for the first time. Go to _System Settings_ > _Privacy & Security_, scroll down and you should see a message that the app was blocked. From there click on `Open Anyway`, and you're good to go.
+This app isn't codesigned because it isn't registered through Apple's Developer program. This is why you see the message `“AudioVideoMerger.app” cannot be opened because the developer cannot be verified.` when opening the app for the first time. Go to _System Settings_ > _Privacy & Security_, scroll down and you should see a message that the app was blocked. From there click on `Open Anyway`, and you're good to go.
 
 ## Platforms 💻
 
