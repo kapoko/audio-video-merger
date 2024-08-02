@@ -1,7 +1,7 @@
 {
   "name": "audio-video-merger",
   "productName": "AudioVideoMerger",
-  "version": "1.2.0-beta.1",
+  "version": "1.2.0-beta.2",
   "description": "A tool for painlessly replacing audio under video files",
   "main": ".vite/build/main.js",
   "scripts": {
