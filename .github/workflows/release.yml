@@ -26,6 +26,6 @@ jobs:
       - name: Release
         uses: softprops/action-gh-release@v2
         with:
-          prerelease: contains(github.ref, 'beta')
+          prerelease: contains(github.ref_name, 'beta')
           files: |
             dist/*/**.zip
