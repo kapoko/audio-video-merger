@@ -33,7 +33,7 @@ export default defineConfig((env) => {
                   dest: "static",
                 },
                 {
-                  src: "node_modules/ffprobe-static/bin/darwin/x64/ffprobe",
+                  src: `node_modules/ffprobe-static/bin/darwin/${process.arch}/ffprobe`,
                   dest: "static",
                 },
               ],
