@@ -8,6 +8,9 @@ import {
     pluginHotRestart,
 } from "./vite.base.config";
 
+const isWindows = process.platform === "win32";
+const isMacOS = process.platform === "darwin";
+
 // https://vitejs.dev/config
 export default defineConfig((env) => {
     const forgeEnv = env as ConfigEnv<"build">;
@@ -27,16 +30,22 @@ export default defineConfig((env) => {
         plugins: [
             pluginHotRestart("restart"),
             viteStaticCopy({
-              targets: [
-                {
-                  src: "node_modules/ffmpeg-static/ffmpeg",
-                  dest: "static",
-                },
-                {
-                  src: `node_modules/ffprobe-static/bin/darwin/${process.arch}/ffprobe`,
-                  dest: "static",
-                },
-              ],
+                targets: [
+                    {
+                        src: isWindows
+                            ? "node_modules/ffmpeg-static/ffmpeg.exe"
+                            : "node_modules/ffmpeg-static/ffmpeg",
+                        dest: "static",
+                    },
+                    {
+                        src: isMacOS
+                            ? `node_modules/ffprobe-static/bin/darwin/${process.arch}/ffprobe`
+                            : isWindows
+                            ? `node_modules/ffprobe-static/bin/win32/${process.arch}/ffprobe.exe`
+                            : "",
+                        dest: "static",
+                    },
+                ],
             }),
         ],
         define,
