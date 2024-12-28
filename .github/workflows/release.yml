@@ -17,7 +17,7 @@ jobs:
 
     strategy:
       matrix:
-        os: [macos-latest]
+        os: [macos-latest, windows-latest]
 
     steps:      
       - name: Download artifact
@@ -30,4 +30,6 @@ jobs:
         with:
           prerelease: ${{ contains(github.ref, 'beta') }}
           files: |
-            dist/*/**.zip
+            dist/zip-macos-latest-arm64/darwin/arm64/*.zip
+            dist/zip-macos-latest-x64/darwin/x64/*.zip
+            dist/zip-windows-latest-x64/win32/x64/*.zip

@@ -7,6 +7,8 @@ import {
     external,
     pluginHotRestart,
 } from "./vite.base.config";
+const isWindows = process.platform === "win32";
+const isMacOS = process.platform === "darwin";
 
 // https://vitejs.dev/config
 export default defineConfig((env) => {
@@ -14,36 +16,42 @@ export default defineConfig((env) => {
     const { forgeConfigSelf } = forgeEnv;
     const define = getBuildDefine(forgeEnv);
     const config: UserConfig = {
-        build: {
-            lib: {
-                entry: forgeConfigSelf.entry!,
-                fileName: () => "[name].js",
-                formats: ["cjs"],
-            },
-            rollupOptions: {
-                external,
-            },
+      build: {
+        lib: {
+          entry: forgeConfigSelf.entry!,
+          fileName: () => "[name].js",
+          formats: ["cjs"],
         },
-        plugins: [
-            pluginHotRestart("restart"),
-            viteStaticCopy({
-              targets: [
-                {
-                  src: "node_modules/ffmpeg-static/ffmpeg",
-                  dest: "static",
-                },
-                {
-                  src: `node_modules/ffprobe-static/bin/darwin/${process.arch}/ffprobe`,
-                  dest: "static",
-                },
-              ],
-            }),
-        ],
-        define,
-        resolve: {
-            // Load the Node.js entry.
-            mainFields: ["module", "jsnext:main", "jsnext"],
+        rollupOptions: {
+          external,
         },
+      },
+      plugins: [
+        pluginHotRestart("restart"),
+        viteStaticCopy({
+          targets: [
+            {
+              src: isWindows
+                ? "node_modules/ffmpeg-static/ffmpeg.exe"
+                : "node_modules/ffmpeg-static/ffmpeg",
+              dest: "static",
+            },
+            {
+              src: isMacOS
+                ? `node_modules/ffprobe-static/bin/darwin/${process.arch}/ffprobe`
+                : isWindows
+                ? `node_modules/ffprobe-static/bin/win32/${process.arch}/ffprobe.exe`
+                : "",
+              dest: "static",
+            },
+          ],
+        }),
+      ],
+      define,
+      resolve: {
+        // Load the Node.js entry.
+        mainFields: ["module", "jsnext:main", "jsnext"],
+      },
     };
 
     return mergeConfig(getBuildConfig(forgeEnv), config);
