@@ -5,19 +5,17 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         window = NSWindow(
-            contentRect: NSRect(x: 0, y: 0, width: 400, height: 300),
+            contentRect: NSRect(x: 0, y: 0, width: 500, height: 400),
             styleMask: [.titled, .closable, .miniaturizable, .resizable],
             backing: .buffered,
             defer: false
         )
 
-        window.title = "Audio Video Merger"
+        window.title = "FFmpeg Audio Video Merger"
         window.center()
 
-        // Create and add the drop view with callback
-        let dropView = DropView(frame: window.contentView!.bounds) { url in
-            print("Dropped file: \(url.path)")
-        }
+        // Create and add the drop view
+        let dropView = SimpleDropView(frame: window.contentView!.bounds)
         dropView.autoresizingMask = [.width, .height]
 
         window.contentView?.addSubview(dropView)

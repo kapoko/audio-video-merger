@@ -1,3 +1,7 @@
 /myapp
 /.build
 .DS_Store
+/Resources
+*.wav
+*.mp4
+*.app
