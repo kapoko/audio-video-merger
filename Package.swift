@@ -1,12 +1,15 @@
-// swift-tools-version:5.0
+// swift-tools-version:5.7
 import PackageDescription
 
 let package = Package(
     name: "swift-test",
     platforms: [
-        .macOS(.v10_14)
+        .macOS(.v11)
+    ],
+    products: [
+        .executable(name: "swift-test", targets: ["swift-test"])
     ],
     targets: [
-        .target(name: "swift-test", path: "src")
+        .executableTarget(name: "swift-test", path: "src")
     ]
 )
