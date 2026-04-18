@@ -19,6 +19,9 @@ class SimpleDropView: NSView {
     private var currentJobIndex = 0
     private var totalJobs = 0
     private var successfulJobs = 0
+    private var jobWeightsBytes: [Double] = []
+    private var totalWeightBytes: Double = 1
+    private var completedWeightBytes: Double = 0
     private var isStateTransitioning = false
     private var pendingStateTransition: (() -> Void)?
     private let stateFadeDuration: TimeInterval = 0.15
@@ -297,6 +300,9 @@ class SimpleDropView: NSView {
         let jobs = createJobList()
         totalJobs = jobs.count
         currentJobIndex = 0
+        jobWeightsBytes = createJobWeights(for: jobs)
+        totalWeightBytes = max(jobWeightsBytes.reduce(0, +), 1)
+        completedWeightBytes = 0
 
         log("Created \(jobs.count) job(s)")
         
@@ -315,9 +321,16 @@ class SimpleDropView: NSView {
         // Set up progress monitoring
         ffmpegProcessor.onProgressUpdate = { [weak self] progress, task in
             DispatchQueue.main.async {
-                self?.progress = progress
-                self?.currentTask = task
-                self?.needsDisplay = true
+                guard let self = self else {
+                    return
+                }
+
+                let currentWeight = self.weightForJob(at: self.currentJobIndex)
+                let weightedProgress =
+                    (self.completedWeightBytes + progress * currentWeight) / self.totalWeightBytes
+                self.progress = min(max(weightedProgress, 0), 1)
+                self.currentTask = task
+                self.needsDisplay = true
             }
         }
         
@@ -357,6 +370,40 @@ class SimpleDropView: NSView {
         
         return audioDirectory.appendingPathComponent(outputFilename)
     }
+
+    private func createJobWeights(for jobs: [(videoURL: URL, audioURL: URL, outputURL: URL)]) -> [Double] {
+        return jobs.map { job in
+            let videoBytes = fileSizeInBytes(for: job.videoURL)
+            let audioBytes = fileSizeInBytes(for: job.audioURL)
+            return max(videoBytes + audioBytes, 1)
+        }
+    }
+
+    private func fileSizeInBytes(for url: URL) -> Double {
+        do {
+            let attributes = try FileManager.default.attributesOfItem(atPath: url.path)
+
+            if let byteCount = attributes[.size] as? NSNumber {
+                return byteCount.doubleValue
+            }
+
+            if let byteCount = attributes[.size] as? Int {
+                return Double(byteCount)
+            }
+        } catch {
+            log("Could not read file size for \(url.lastPathComponent): \(error.localizedDescription)")
+        }
+
+        return 1
+    }
+
+    private func weightForJob(at index: Int) -> Double {
+        guard index >= 0 && index < jobWeightsBytes.count else {
+            return 1
+        }
+
+        return max(jobWeightsBytes[index], 1)
+    }
     
     private func processNextJob(jobs: [(videoURL: URL, audioURL: URL, outputURL: URL)]) {
         guard currentJobIndex < jobs.count else {
@@ -386,6 +433,8 @@ class SimpleDropView: NSView {
                 case .failure(let error):
                     self.log("Job \(self.currentJobIndex + 1) failed: \(error.localizedDescription)")
                 }
+
+                self.completedWeightBytes += self.weightForJob(at: self.currentJobIndex)
                 
                 self.currentJobIndex += 1
                 
@@ -429,6 +478,9 @@ class SimpleDropView: NSView {
             self.currentJobIndex = 0
             self.totalJobs = 0
             self.successfulJobs = 0
+            self.jobWeightsBytes.removeAll()
+            self.totalWeightBytes = 1
+            self.completedWeightBytes = 0
 
             self.resetDroppedFiles()
         }
