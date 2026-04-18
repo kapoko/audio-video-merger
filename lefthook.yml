@@ -1,0 +1,14 @@
+pre-commit:
+  parallel: true
+  commands:
+    swift-format:
+      run: swift format lint -r src
+    swiftlint:
+      run: swiftlint lint --strict
+
+pre-push:
+  commands:
+    build:
+      run: swift build
+    test:
+      run: swift test

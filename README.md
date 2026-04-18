@@ -109,11 +109,41 @@ make bundle-all
 - **Command line version**: `swift run` or `./.build/debug/swift-test` - prints notifications to console
 - **App bundle version**: `make bundle && open "Audio Video Merger.app"` - shows macOS notifications
 
+## Code Quality
+
+This project uses Swift-native tooling for formatting and linting.
+
+- **Formatter**: `swift format`
+- **Linter**: `SwiftLint`
+- **Pre-commit hooks**: `lefthook`
+
+Install tools:
+
+```bash
+brew install swiftlint lefthook
+```
+
+Install git hooks:
+
+```bash
+lefthook install
+```
+
+Run checks manually:
+
+```bash
+swift format lint -r src
+swiftlint lint --strict
+swift build
+```
+
 ## Project Structure
 
-- `src/main.swift` - Application entry point and window setup
-- `src/SimpleDropView.swift` - Main drag-and-drop interface with visual feedback
+- `src/SwiftTestApp.swift` - SwiftUI app entry point and macOS window configuration
+- `src/ContentView.swift` - SwiftUI interface with drop zone and progress ring
+- `src/DropViewModel.swift` - Drop handling, batch orchestration, overwrite flow, and progress state
 - `src/SimpleFFmpegProcessor.swift` - FFmpeg processing logic and file management
+- `lefthook.yml` - Pre-commit/pre-push checks
 - `download_ffmpeg.sh` - Script to download and bundle architecture-specific FFmpeg binaries
 - `Resources/ffmpeg-x86_64` - Bundled Intel FFmpeg binary
 - `Resources/ffmpeg-arm64` - Bundled Apple Silicon FFmpeg binary
@@ -134,8 +164,8 @@ This command:
 
 ## Requirements
 
-- macOS 10.14 or later
-- Swift 5.0 or later
+- macOS 11 or later
+- Swift 5.7 or later
 - Internet connection (for downloading FFmpeg during first build)
 
 ## Distribution

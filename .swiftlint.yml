@@ -1,0 +1,9 @@
+excluded:
+  - .build
+
+disabled_rules:
+  - large_tuple
+  - function_body_length
+  - type_body_length
+  - opening_brace
+  - trailing_comma

@@ -5,6 +5,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 RESOURCES_DIR="$SCRIPT_DIR/Resources"
 TMP_DIR="$RESOURCES_DIR/.ffmpeg_tmp"
+VERSION_FILE="$RESOURCES_DIR/.ffmpeg_source_urls"
 
 INTEL_URL="https://www.osxexperts.net/ffmpeg80intel.zip"
 ARM_URL="https://www.osxexperts.net/ffmpeg81arm.zip"
@@ -14,6 +15,49 @@ ARM_ZIP="$TMP_DIR/ffmpeg-arm64.zip"
 
 INTEL_OUT="$RESOURCES_DIR/ffmpeg-x86_64"
 ARM_OUT="$RESOURCES_DIR/ffmpeg-arm64"
+CURRENT_SOURCE_TAG="intel=${INTEL_URL};arm=${ARM_URL}"
+
+is_binary_valid() {
+    local binary_path="$1"
+    local expected_arch="$2"
+
+    if [ ! -x "$binary_path" ]; then
+        return 1
+    fi
+
+    local info
+    info="$(file "$binary_path" 2>/dev/null || true)"
+    case "$info" in
+        *"$expected_arch"*)
+            return 0
+            ;;
+        *)
+            return 1
+            ;;
+    esac
+}
+
+if [ -f "$VERSION_FILE" ] \
+    && [ "$(cat "$VERSION_FILE")" = "$CURRENT_SOURCE_TAG" ] \
+    && is_binary_valid "$INTEL_OUT" "x86_64" \
+    && is_binary_valid "$ARM_OUT" "arm64"
+then
+    echo "FFmpeg binaries already present and up to date. Skipping download."
+    echo "- Intel: $INTEL_OUT"
+    echo "- ARM64: $ARM_OUT"
+    exit 0
+fi
+
+if [ ! -f "$VERSION_FILE" ] \
+    && is_binary_valid "$INTEL_OUT" "x86_64" \
+    && is_binary_valid "$ARM_OUT" "arm64"
+then
+    printf '%s\n' "$CURRENT_SOURCE_TAG" >"$VERSION_FILE"
+    echo "FFmpeg binaries found and validated. Saved source tag and skipping download."
+    echo "- Intel: $INTEL_OUT"
+    echo "- ARM64: $ARM_OUT"
+    exit 0
+fi
 
 echo "Preparing Resources directory..."
 mkdir -p "$RESOURCES_DIR"
@@ -46,6 +90,7 @@ cp "$TMP_DIR/intel/ffmpeg" "$INTEL_OUT"
 cp "$TMP_DIR/arm64/ffmpeg" "$ARM_OUT"
 
 chmod +x "$INTEL_OUT" "$ARM_OUT"
+printf '%s\n' "$CURRENT_SOURCE_TAG" >"$VERSION_FILE"
 rm -rf "$TMP_DIR"
 
 echo "FFmpeg binaries downloaded successfully"

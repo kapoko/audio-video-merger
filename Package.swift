@@ -10,6 +10,7 @@ let package = Package(
         .executable(name: "swift-test", targets: ["swift-test"])
     ],
     targets: [
-        .executableTarget(name: "swift-test", path: "src")
+        .executableTarget(name: "swift-test", path: "src"),
+        .testTarget(name: "swift-testTests", dependencies: ["swift-test"], path: "Tests/swift-testTests")
     ]
 )
