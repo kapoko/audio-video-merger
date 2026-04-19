@@ -51,6 +51,8 @@ make zip-x86_64
 make zip-arm64
 ```
 
+Build outputs are written to `dist/` (`dist/apps/*.app` and release zip assets in `dist/*.zip`).
+
 ## Notifications and app verification
 
 - Completion notifications are available when running as an app bundle (`.app`).

@@ -1,10 +1,11 @@
 .PHONY: all ffmpeg setup build build-x86_64 build-arm64 build-all run clean dev bundle bundle-x86_64 bundle-arm64 zip zip-x86_64 zip-arm64
 
 APP_NAME := Audio Video Merger.app
-APP_X86_64 := Audio Video Merger-x86_64.app
-APP_ARM64 := Audio Video Merger-arm64.app
 EXECUTABLE := AudioVideoMerger
 DIST_DIR := dist
+APP_BUNDLE_DIR := $(DIST_DIR)/apps
+APP_X86_64 := $(APP_BUNDLE_DIR)/Audio Video Merger-x86_64.app
+APP_ARM64 := $(APP_BUNDLE_DIR)/Audio Video Merger-arm64.app
 APP_VERSION := $(shell tr -d '[:space:]' < VERSION)
 
 # Default target
@@ -46,8 +47,7 @@ run: build
 clean:
 	@echo "Cleaning build artifacts..."
 	rm -rf .build
-	rm -rf Resources
-	rm -rf "$(APP_NAME)" "$(APP_X86_64)" "$(APP_ARM64)"
+	rm -rf "$(DIST_DIR)"
 
 # Development build and run
 dev:
@@ -60,6 +60,7 @@ bundle: bundle-x86_64 bundle-arm64
 # Create x86_64 app bundle
 bundle-x86_64: build-x86_64 setup
 	@echo "Creating x86_64 app bundle..."
+	@mkdir -p "$(APP_BUNDLE_DIR)"
 	rm -rf "$(APP_X86_64)"
 	mkdir -p "$(APP_X86_64)/Contents/MacOS"
 	mkdir -p "$(APP_X86_64)/Contents/Resources"
@@ -73,6 +74,7 @@ bundle-x86_64: build-x86_64 setup
 # Create arm64 app bundle
 bundle-arm64: build-arm64 setup
 	@echo "Creating arm64 app bundle..."
+	@mkdir -p "$(APP_BUNDLE_DIR)"
 	rm -rf "$(APP_ARM64)"
 	mkdir -p "$(APP_ARM64)/Contents/MacOS"
 	mkdir -p "$(APP_ARM64)/Contents/Resources"
