@@ -4,7 +4,7 @@
 
 AudioVideoMerger is a macOS app for replacing audio under video files using FFmpeg, without re-encoding the video stream.
 
-- **Fast**: Copies video stream directly (`-c:v copy`) to avoid quality loss.
+- **Fast**: Copies video stream directly to avoid re-rendering and quality loss.
 - **Simple**: Drag and drop files into the window, onto the app icon, or open files with the app.
 - **Batch-ready**: Automatically creates every video/audio combination when dropping multiple files.
 - **Self-contained**: Uses bundled FFmpeg binaries (`arm64` and `x86_64`).
@@ -82,3 +82,8 @@ swift format lint -r src
 swiftlint lint --strict
 swift build
 ```
+
+## Project history
+
+**v2+** is a complete Swift/macOS rewrite, as I didn't want to bundle electron in such a simple app anymore. If you need the old V1 source code, check tags matching `v1.x.x`.
+
