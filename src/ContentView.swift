@@ -26,13 +26,14 @@ struct ContentView: View {
             HStack(spacing: 8) {
               Image(systemName: symbolName)
                 .foregroundColor(.green)
+                .frame(width: 14, height: 14)
 
               Text(viewModel.progressLabel())
                 .foregroundColor(.primary)
 
               if let jobLabel = viewModel.jobProgressLabel() {
                 Text(jobLabel)
-                  .font(.system(size: 11, weight: .semibold, design: .rounded))
+                  .font(.system(size: 11, weight: .semibold, design: .monospaced))
                   .foregroundColor(.secondary)
                   .padding(.horizontal, 8)
                   .padding(.vertical, 3)
@@ -42,20 +43,22 @@ struct ContentView: View {
                   )
               }
             }
-            .font(.system(size: 14, weight: .regular, design: .rounded))
+            .font(.system(size: 16, weight: .regular, design: .rounded))
             .multilineTextAlignment(.center)
+            .frame(minHeight: 24)
           } else {
             HStack(spacing: 8) {
               ProgressView()
                 .progressViewStyle(CircularProgressViewStyle())
                 .controlSize(.small)
+                .frame(width: 14, height: 14)
 
               Text(viewModel.progressLabel())
                 .foregroundColor(.primary)
 
               if let jobLabel = viewModel.jobProgressLabel() {
                 Text(jobLabel)
-                  .font(.system(size: 11, weight: .semibold, design: .rounded))
+                  .font(.system(size: 11, weight: .semibold, design: .monospaced))
                   .foregroundColor(.secondary)
                   .padding(.horizontal, 8)
                   .padding(.vertical, 3)
@@ -65,8 +68,9 @@ struct ContentView: View {
                   )
               }
             }
-            .font(.system(size: 14, weight: .regular, design: .rounded))
+            .font(.system(size: 16, weight: .regular, design: .rounded))
             .multilineTextAlignment(.center)
+            .frame(minHeight: 24)
           }
         }
         .frame(maxWidth: .infinity)
