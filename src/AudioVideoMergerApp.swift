@@ -60,6 +60,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate,
     return true
   }
 
+  func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
+    true
+  }
+
   private func startupFilePaths() -> [String] {
     let arguments = Array(ProcessInfo.processInfo.arguments.dropFirst())
     return arguments.filter { argument in
