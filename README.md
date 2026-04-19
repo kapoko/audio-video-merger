@@ -1,186 +1,80 @@
-# Audio Video Merger
+# AudioVideoMerger
 
-A macOS application that allows you to replace audio tracks in videos using FFmpeg. Simply drag and drop a video file and an audio file, and the app will create a new video with the audio replaced, without re-rendering the video stream.
+AudioVideoMerger is a macOS app for replacing audio under video files using FFmpeg, without re-encoding the video stream.
 
-## Features
+- **Fast**: Copies video stream directly (`-c:v copy`) to avoid quality loss.
+- **Simple**: Drag and drop files into the window, onto the app icon, or open files with the app.
+- **Batch-ready**: Automatically creates every video/audio combination when dropping multiple files.
+- **Self-contained**: Uses bundled FFmpeg binaries (`arm64` and `x86_64`).
 
-- **Dual File Drop Support**: Drop both video and audio files onto the application
-- **No Re-rendering**: Uses FFmpeg's stream copy (`-c:v copy`) to avoid quality loss
-- **Progress Tracking**: Real-time progress bar during conversion
-- **macOS Notifications**: Get notified when conversion is complete
-- **Smart Output Naming**: Output file is named after the audio file and saved in the audio file's directory
-- **Bundled FFmpeg**: No need to install FFmpeg separately
+## In action
 
-## Supported Formats
+![Demo](https://i.imgur.com/CUIK93h.gif)
 
-### Video Files
-- MP4, MOV, AVI, MKV, M4V, WMV, FLV, WebM
+## Why
 
-### Audio Files  
-- MP3, WAV, AAC, M4A, FLAC, OGG, WMA
+This tool is built for fast audio versioning against existing video files. Instead of opening a video editor and re-rendering repeatedly, you can generate new versions in seconds.
 
-## How to Use
+## How it works
 
-### Basic Usage (Single Files)
-1. **Build and Run**: `swift run` or use the provided build scripts
-2. **Drop Files**: Drag and drop a video file and an audio file onto the application window
-3. **Wait for Processing**: Watch the progress bar as FFmpeg processes the files
-4. **Get Notified**: Receive a macOS notification when conversion is complete
-5. **Find Your File**: The new video will be saved in the same directory as the audio file
+Drop at least one video file and one audio file.
 
-### Advanced Usage (Multiple Files)
-The app supports **batch processing** for multiple combinations:
+- `1 video + many audio` -> output names use the audio filename (for example, `song1.mp4`, `song2.mp4`).
+- `many videos + 1 audio` -> output names use `video_audio` (for example, `clip1_music.mp4`).
+- `many videos + many audio` -> all combinations are created.
+- Outputs are saved in the audio file directory.
 
-#### Multiple Audio Files + Single Video
-- Drop 1 video + multiple audio files
-- Creates a new video for each audio file
-- Output naming: `[audio_name].[video_extension]`
-- Example: `song1.mp4`, `song2.mp4`, `song3.mp4`
+When an output file already exists, the app asks whether to overwrite.
 
-#### Multiple Video Files + Single Audio  
-- Drop multiple videos + 1 audio file
-- Creates a new video for each video file with the same audio
-- Output naming: `[video_name]_[audio_name].[video_extension]`
-- Example: `clip1_soundtrack.mp4`, `clip2_soundtrack.mp4`
+## Build and run
 
-#### Multiple Videos + Multiple Audio Files
-- Drop multiple videos + multiple audio files  
-- Creates **all combinations** (videos × audio files)
-- Output naming: `[video_name]_[audio_name].[video_extension]`
-- Example: 2 videos + 3 audio files = 6 output files
-
-#### Batch Progress Tracking
-- Shows overall progress: "Job 3/6" 
-- Individual file progress within each job
-- All files processed sequentially with real FFmpeg progress
-
-## Building
-
-### Quick Start
 ```bash
-# Build and run in development mode (no notifications)
+# Development run
 swift run
 
-# Or use the build script
-./.build/release/AudioVideoMerger
-
-# Build architecture-specific binaries
-./build.sh x86_64
-./build.sh arm64
-
-# Create proper app bundle with notifications
-make bundle && open "Audio Video Merger.app"
-
-# Create architecture-specific app bundles
-make bundle-x86_64
-make bundle-arm64
-```
-
-### Using Make
-```bash
-# Download FFmpeg and build everything
-make all
-
-# Just download FFmpeg
-make ffmpeg  
-
-# Build the application
+# Build release binary for host architecture
 make build
 
-# Build architecture-specific binaries
-make build-x86_64
-make build-arm64
-
-# Run the command line version
+# Run release binary
 make run
 
-# Create an app bundle for distribution (recommended)
+# Create app bundles
 make bundle
-
-# Create architecture-specific app bundles
 make bundle-x86_64
 make bundle-arm64
 
-# Create both architecture-specific bundles
-make bundle-all
+# Create release zip assets
+make zip
+make zip-x86_64
+make zip-arm64
 ```
 
-### Running
-- **Command line version**: `swift run` or `./.build/debug/AudioVideoMerger` - prints notifications to console
-- **App bundle version**: `make bundle && open "Audio Video Merger.app"` - shows macOS notifications
+## Notifications and app verification
 
-## Code Quality
+- Completion notifications are available when running as an app bundle (`.app`).
+- The app is ad-hoc signed (not notarized), so macOS may show a verification warning on first launch. If that happens, allow it from _System Settings_ -> _Privacy & Security_ -> _Open Anyway_.
 
-This project uses Swift-native tooling for formatting and linting.
+## Platform and requirements
 
-- **Formatter**: `swift format`
-- **Linter**: `SwiftLint`
-- **Pre-commit hooks**: `lefthook`
+- macOS 11 or later
+- Swift 5.7 or later
+- Internet connection for first-time FFmpeg download (`make ffmpeg` / `make setup`)
 
-Install tools:
+## Download
+
+You can download releases from the project website:
+
+https://audiovideomerger.github.io
+
+## Development tooling
+
+This repo uses Swift formatting/linting and optional git hooks:
 
 ```bash
 brew install swiftlint lefthook
-```
-
-Install git hooks:
-
-```bash
 lefthook install
-```
 
-Run checks manually:
-
-```bash
 swift format lint -r src
 swiftlint lint --strict
 swift build
 ```
-
-## Project Structure
-
-- `src/AudioVideoMergerApp.swift` - SwiftUI app entry point and macOS window configuration
-- `src/ContentView.swift` - SwiftUI interface with drop zone and progress ring
-- `src/DropViewModel.swift` - Drop handling, batch orchestration, overwrite flow, and progress state
-- `src/SimpleFFmpegProcessor.swift` - FFmpeg processing logic and file management
-- `lefthook.yml` - Pre-commit/pre-push checks
-- `download_ffmpeg.sh` - Script to download and bundle architecture-specific FFmpeg binaries
-- `Resources/ffmpeg-x86_64` - Bundled Intel FFmpeg binary
-- `Resources/ffmpeg-arm64` - Bundled Apple Silicon FFmpeg binary
-
-## FFmpeg Command
-
-The app uses this FFmpeg command for audio replacement:
-```bash
-ffmpeg -i video.mp4 -i audio.mp3 -c:v copy -c:a aac -map 0:v:0 -map 1:a:0 -y output.mp4
-```
-
-This command:
-- Takes video and audio as inputs (`-i`)
-- Copies the video stream without re-encoding (`-c:v copy`)
-- Encodes audio to AAC (`-c:a aac`)
-- Maps the video from first input and audio from second input (`-map`)
-- Overwrites output file if it exists (`-y`)
-
-## Requirements
-
-- macOS 11 or later
-- Swift 5.7 or later
-- Internet connection (for downloading FFmpeg during first build)
-
-## Distribution
-
-To create a distributable app bundle:
-```bash
-make bundle
-```
-
-This creates `Audio Video Merger.app` with both FFmpeg binaries embedded.
-
-For architecture-specific distribution bundles:
-```bash
-make bundle-x86_64
-make bundle-arm64
-```
-
-`make bundle-x86_64` includes only `ffmpeg-x86_64`, and `make bundle-arm64` includes only `ffmpeg-arm64`.

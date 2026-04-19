@@ -1,9 +1,11 @@
-.PHONY: all ffmpeg setup build build-x86_64 build-arm64 build-all run clean dev bundle bundle-x86_64 bundle-arm64 bundle-all
+.PHONY: all ffmpeg setup build build-x86_64 build-arm64 build-all run clean dev bundle bundle-x86_64 bundle-arm64 zip zip-x86_64 zip-arm64
 
 APP_NAME := Audio Video Merger.app
 APP_X86_64 := Audio Video Merger-x86_64.app
 APP_ARM64 := Audio Video Merger-arm64.app
 EXECUTABLE := AudioVideoMerger
+DIST_DIR := dist
+APP_VERSION := $(shell tr -d '[:space:]' < VERSION)
 
 # Default target
 all: setup build
@@ -51,19 +53,9 @@ clean:
 dev:
 	swift run
 
-# Create app bundle for host architecture
-bundle: build setup
-	@echo "Creating host architecture app bundle..."
-	rm -rf "$(APP_NAME)"
-	mkdir -p "$(APP_NAME)/Contents/MacOS"
-	mkdir -p "$(APP_NAME)/Contents/Resources"
-	cp .build/release/$(EXECUTABLE) "$(APP_NAME)/Contents/MacOS/"
-	cp Resources/ffmpeg-x86_64 "$(APP_NAME)/Contents/Resources/"
-	cp Resources/ffmpeg-arm64 "$(APP_NAME)/Contents/Resources/"
-	cp Info.plist "$(APP_NAME)/Contents/"
-	codesign --force --deep --sign - "$(APP_NAME)"
-	@echo "App bundle created: $(APP_NAME)"
-	@echo "You can now run: open '$(APP_NAME)'"
+# Create both architecture-specific bundles
+bundle: bundle-x86_64 bundle-arm64
+	@echo "Both architecture bundles created"
 
 # Create x86_64 app bundle
 bundle-x86_64: build-x86_64 setup
@@ -89,6 +81,26 @@ bundle-arm64: build-arm64 setup
 	codesign --force --deep --sign - "$(APP_ARM64)"
 	@echo "App bundle created: $(APP_ARM64)"
 
-# Create both architecture-specific bundles
-bundle-all: bundle-x86_64 bundle-arm64
-	@echo "Both architecture bundles created"
+# Zip x86_64 bundle with normalized app name
+zip-x86_64: bundle-x86_64
+	@echo "Creating x86_64 zip asset..."
+	@mkdir -p "$(DIST_DIR)"
+	@tmpdir="$$(mktemp -d)"; \
+		ditto "$(APP_X86_64)" "$$tmpdir/$(APP_NAME)"; \
+		ditto -c -k --sequesterRsrc --keepParent "$$tmpdir/$(APP_NAME)" "$(DIST_DIR)/AudioVideoMerger-darwin-x86_64-$(APP_VERSION).zip"; \
+		rm -rf "$$tmpdir"
+	@echo "Created $(DIST_DIR)/AudioVideoMerger-darwin-x86_64-$(APP_VERSION).zip"
+
+# Zip arm64 bundle with normalized app name
+zip-arm64: bundle-arm64
+	@echo "Creating arm64 zip asset..."
+	@mkdir -p "$(DIST_DIR)"
+	@tmpdir="$$(mktemp -d)"; \
+		ditto "$(APP_ARM64)" "$$tmpdir/$(APP_NAME)"; \
+		ditto -c -k --sequesterRsrc --keepParent "$$tmpdir/$(APP_NAME)" "$(DIST_DIR)/AudioVideoMerger-darwin-arm64-$(APP_VERSION).zip"; \
+		rm -rf "$$tmpdir"
+	@echo "Created $(DIST_DIR)/AudioVideoMerger-darwin-arm64-$(APP_VERSION).zip"
+
+# Create both zip assets
+zip: zip-x86_64 zip-arm64
+	@echo "All zip assets created"
