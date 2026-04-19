@@ -236,7 +236,9 @@ class SimpleFFmpegProcessor {
     let lines = ffmpegOutput.components(separatedBy: .newlines)
 
     for line in lines {
-      if line.contains("out_time_ms=") {
+      if line == "progress=continue" || line == "progress=end" {
+        continue
+      } else if line.contains("out_time_ms=") {
         let value = line.replacingOccurrences(of: "out_time_ms=", with: "")
         if let microseconds = Double(value), microseconds >= 0 {
           let seconds = microseconds / 1_000_000
