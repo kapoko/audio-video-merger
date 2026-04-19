@@ -1,3 +1,5 @@
+<img src="Resources/logo.png" title="AudioVideoMerger" alt="AudioVideoMerger logo" width="128">
+
 # AudioVideoMerger
 
 AudioVideoMerger is a macOS app for replacing audio under video files using FFmpeg, without re-encoding the video stream.
