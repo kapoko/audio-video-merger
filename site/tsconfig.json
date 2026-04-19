@@ -1,0 +1,24 @@
+{
+    "compilerOptions": {
+        "outDir": "dist",
+        "noImplicitAny": true,
+        "target": "es5",
+        "allowJs": true,
+        "baseUrl": ".",
+        "moduleResolution": "node",
+        "isolatedModules": true,
+        "module": "es6",
+        "skipLibCheck": true,
+        "esModuleInterop": true,
+        "allowSyntheticDefaultImports": true,
+        "strict": true,
+        "sourceMap": true,
+        "forceConsistentCasingInFileNames": true,
+        "resolveJsonModule": true,
+        "noEmit": false,
+        "paths": {
+            "*": ["node_modules/*"],
+        }
+    }
+}
+  

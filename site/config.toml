@@ -1,0 +1,9 @@
+baseURL = "https://audiovideomerger.github.io/"
+languageCode = "en-us"
+title = "AudioVideoMerger"
+staticDir = ["static", "dist"]
+disableKinds = ["taxonomy", "taxonomyTerm"]
+[params]
+    author = "Kasper Koman"
+    description = "AudioVideoMerger is a one-trick-pony for painlessly replacing audio under video files."
+
