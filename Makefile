@@ -3,6 +3,7 @@
 APP_NAME := Audio Video Merger.app
 APP_X86_64 := Audio Video Merger-x86_64.app
 APP_ARM64 := Audio Video Merger-arm64.app
+EXECUTABLE := AudioVideoMerger
 
 # Default target
 all: setup build
@@ -37,7 +38,7 @@ build-all: build-x86_64 build-arm64
 # Run the application
 run: build
 	@echo "Running application..."
-	./.build/release/swift-test
+	./.build/release/$(EXECUTABLE)
 
 # Clean build artifacts
 clean:
@@ -56,10 +57,11 @@ bundle: build setup
 	rm -rf "$(APP_NAME)"
 	mkdir -p "$(APP_NAME)/Contents/MacOS"
 	mkdir -p "$(APP_NAME)/Contents/Resources"
-	cp .build/release/swift-test "$(APP_NAME)/Contents/MacOS/"
+	cp .build/release/$(EXECUTABLE) "$(APP_NAME)/Contents/MacOS/"
 	cp Resources/ffmpeg-x86_64 "$(APP_NAME)/Contents/Resources/"
 	cp Resources/ffmpeg-arm64 "$(APP_NAME)/Contents/Resources/"
 	cp Info.plist "$(APP_NAME)/Contents/"
+	codesign --force --deep --sign - "$(APP_NAME)"
 	@echo "App bundle created: $(APP_NAME)"
 	@echo "You can now run: open '$(APP_NAME)'"
 
@@ -69,9 +71,10 @@ bundle-x86_64: build-x86_64 setup
 	rm -rf "$(APP_X86_64)"
 	mkdir -p "$(APP_X86_64)/Contents/MacOS"
 	mkdir -p "$(APP_X86_64)/Contents/Resources"
-	cp .build/x86_64-apple-macosx/release/swift-test "$(APP_X86_64)/Contents/MacOS/"
+	cp .build/x86_64-apple-macosx/release/$(EXECUTABLE) "$(APP_X86_64)/Contents/MacOS/"
 	cp Resources/ffmpeg-x86_64 "$(APP_X86_64)/Contents/Resources/"
 	cp Info.plist "$(APP_X86_64)/Contents/"
+	codesign --force --deep --sign - "$(APP_X86_64)"
 	@echo "App bundle created: $(APP_X86_64)"
 
 # Create arm64 app bundle
@@ -80,9 +83,10 @@ bundle-arm64: build-arm64 setup
 	rm -rf "$(APP_ARM64)"
 	mkdir -p "$(APP_ARM64)/Contents/MacOS"
 	mkdir -p "$(APP_ARM64)/Contents/Resources"
-	cp .build/arm64-apple-macosx/release/swift-test "$(APP_ARM64)/Contents/MacOS/"
+	cp .build/arm64-apple-macosx/release/$(EXECUTABLE) "$(APP_ARM64)/Contents/MacOS/"
 	cp Resources/ffmpeg-arm64 "$(APP_ARM64)/Contents/Resources/"
 	cp Info.plist "$(APP_ARM64)/Contents/"
+	codesign --force --deep --sign - "$(APP_ARM64)"
 	@echo "App bundle created: $(APP_ARM64)"
 
 # Create both architecture-specific bundles

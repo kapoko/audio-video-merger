@@ -1,5 +1,5 @@
 import XCTest
-@testable import swift_test
+@testable import AudioVideoMerger
 
 @MainActor
 final class SmokeTests: XCTestCase {

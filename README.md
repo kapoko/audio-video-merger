@@ -1,4 +1,4 @@
-# FFmpeg Audio Video Merger
+# Audio Video Merger
 
 A macOS application that allows you to replace audio tracks in videos using FFmpeg. Simply drag and drop a video file and an audio file, and the app will create a new video with the audio replaced, without re-rendering the video stream.
 
@@ -62,7 +62,7 @@ The app supports **batch processing** for multiple combinations:
 swift run
 
 # Or use the build script
-./build.sh && ./.build/release/swift-test
+./.build/release/AudioVideoMerger
 
 # Build architecture-specific binaries
 ./build.sh x86_64
@@ -106,7 +106,7 @@ make bundle-all
 ```
 
 ### Running
-- **Command line version**: `swift run` or `./.build/debug/swift-test` - prints notifications to console
+- **Command line version**: `swift run` or `./.build/debug/AudioVideoMerger` - prints notifications to console
 - **App bundle version**: `make bundle && open "Audio Video Merger.app"` - shows macOS notifications
 
 ## Code Quality
@@ -139,7 +139,7 @@ swift build
 
 ## Project Structure
 
-- `src/SwiftTestApp.swift` - SwiftUI app entry point and macOS window configuration
+- `src/AudioVideoMergerApp.swift` - SwiftUI app entry point and macOS window configuration
 - `src/ContentView.swift` - SwiftUI interface with drop zone and progress ring
 - `src/DropViewModel.swift` - Drop handling, batch orchestration, overwrite flow, and progress state
 - `src/SimpleFFmpegProcessor.swift` - FFmpeg processing logic and file management

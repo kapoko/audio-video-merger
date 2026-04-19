@@ -2,15 +2,19 @@
 import PackageDescription
 
 let package = Package(
-    name: "swift-test",
+    name: "audio-video-merger",
     platforms: [
         .macOS(.v11)
     ],
     products: [
-        .executable(name: "swift-test", targets: ["swift-test"])
+        .executable(name: "AudioVideoMerger", targets: ["AudioVideoMerger"])
     ],
     targets: [
-        .executableTarget(name: "swift-test", path: "src"),
-        .testTarget(name: "swift-testTests", dependencies: ["swift-test"], path: "Tests/swift-testTests")
+        .executableTarget(name: "AudioVideoMerger", path: "src"),
+        .testTarget(
+            name: "AudioVideoMergerTests",
+            dependencies: ["AudioVideoMerger"],
+            path: "Tests/AudioVideoMergerTests"
+        )
     ]
 )

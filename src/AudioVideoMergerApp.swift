@@ -1,19 +1,46 @@
 import AppKit
 import SwiftUI
+import UserNotifications
 
 @MainActor
-final class AppDelegate: NSObject, NSApplicationDelegate {
+final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate,
+  UNUserNotificationCenterDelegate
+{
   private var mainWindow: NSWindow?
+  private var minimumFrameSize = NSSize(width: 300, height: 150)
 
   func applicationDidFinishLaunching(_ notification: Notification) {
     NSApp.setActivationPolicy(.regular)
     NSApp.activate(ignoringOtherApps: true)
+
+    if (Bundle.main.object(forInfoDictionaryKey: "CFBundlePackageType") as? String) == "APPL" {
+      configureNotifications()
+    }
+
     showMainWindow()
 
     let startupPaths = startupFilePaths()
     if !startupPaths.isEmpty {
       enqueueOpenedFiles(startupPaths)
     }
+  }
+
+  nonisolated func userNotificationCenter(
+    _ center: UNUserNotificationCenter,
+    willPresent notification: UNNotification,
+    withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void
+  ) {
+    if #available(macOS 11.0, *) {
+      completionHandler([.banner, .sound])
+    } else {
+      completionHandler([.alert, .sound])
+    }
+  }
+
+  private func configureNotifications() {
+    let center = UNUserNotificationCenter.current()
+    center.delegate = self
+    center.requestAuthorization(options: [.alert, .sound]) { _, _ in }
   }
 
   func application(_ sender: NSApplication, openFiles filenames: [String]) {
@@ -72,22 +99,36 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     let contentView = ContentView()
     let hostingController = NSHostingController(rootView: contentView)
 
+    let initialContentSize = NSSize(width: 500, height: 400)
+    let minimumContentSize = NSSize(width: 300, height: 150)
+
     let window = NSWindow(contentViewController: hostingController)
-    window.setContentSize(NSSize(width: 500, height: 400))
-    window.minSize = NSSize(width: 500, height: 400)
+    window.setContentSize(initialContentSize)
+    window.contentMinSize = minimumContentSize
+    minimumFrameSize = window.frameRect(forContentRect: NSRect(origin: .zero, size: minimumContentSize)).size
+    window.minSize = minimumFrameSize
+    window.delegate = self
     window.title = ""
     window.titleVisibility = .hidden
     window.titlebarAppearsTransparent = true
     window.isReleasedWhenClosed = false
+    window.center()
     window.makeKeyAndOrderFront(nil)
 
     mainWindow = window
     NSApp.activate(ignoringOtherApps: true)
   }
+
+  func windowWillResize(_ sender: NSWindow, to frameSize: NSSize) -> NSSize {
+    NSSize(
+      width: max(frameSize.width, minimumFrameSize.width),
+      height: max(frameSize.height, minimumFrameSize.height)
+    )
+  }
 }
 
 @main
-struct SwiftTestApp: App {
+struct AudioVideoMergerApp: App {
   @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
 
   var body: some Scene {

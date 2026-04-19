@@ -1,6 +1,7 @@
 import AppKit
 import Combine
 import Foundation
+@preconcurrency import UserNotifications
 import UniformTypeIdentifiers
 
 enum DropPromptState: Equatable {
@@ -33,6 +34,10 @@ final class DropViewModel: ObservableObject {
   private var totalWeightBytes: Double = 1
   private var completedWeightBytes: Double = 0
   private var shouldShowJobIndex = false
+
+  private var isAppBundle: Bool {
+    Bundle.main.bundleURL.pathExtension == "app"
+  }
 
   func statusText() -> String {
     switch dropPromptState {
@@ -349,6 +354,7 @@ final class DropViewModel: ObservableObject {
       progress = 1
       currentTask = "✅ Done! Created \(successfulJobs) \(videoLabel)"
       shouldShowJobIndex = false
+      sendCompletionNotification(processed: successfulJobs, total: totalJobs)
 
       Task {
         try? await Task.sleep(nanoseconds: 2_000_000_000)
@@ -360,6 +366,31 @@ final class DropViewModel: ObservableObject {
     }
 
     resetProcessingState()
+  }
+
+  private func sendCompletionNotification(processed: Int, total: Int) {
+    guard isAppBundle else {
+      return
+    }
+
+    let center = UNUserNotificationCenter.current()
+
+    let content = UNMutableNotificationContent()
+    content.title = "Merging videos complete"
+    content.body = "✅ Created \(processed) of \(total) videos."
+    content.sound = .default
+
+    let request = UNNotificationRequest(
+      identifier: UUID().uuidString,
+      content: content,
+      trigger: nil
+    )
+
+    center.add(request) { error in
+      if let error {
+        print("[Notifications] Failed to schedule completion notification: \(error.localizedDescription)")
+      }
+    }
   }
 
   private func resetProcessingState() {

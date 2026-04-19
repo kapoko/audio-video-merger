@@ -24,7 +24,6 @@ struct ContentView: View {
     }
     .frame(maxWidth: .infinity, maxHeight: .infinity)
     .padding(16)
-    .frame(minWidth: 500, minHeight: 400)
     .alert(isPresented: $viewModel.showUnrecognizedFilesAlert) {
       Alert(
         title: Text("Unsupported Files"),
