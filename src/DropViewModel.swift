@@ -48,7 +48,7 @@ final class DropViewModel: ObservableObject {
     case .needsVideo:
       return "Drop one or more video files..."
     case .hovering:
-      return "Cast it into the fire! 🔥"
+      return "Cast it into the fire!"
     }
   }
 
@@ -69,10 +69,32 @@ final class DropViewModel: ObservableObject {
   }
 
   func progressLabel() -> String {
-    let jobText =
-      shouldShowJobIndex && totalJobs > 1
-      ? " \(min(currentJobIndex + 1, totalJobs))/\(totalJobs)" : ""
-    return String(format: "%@%@", currentTask, jobText)
+    currentTask
+  }
+
+  func jobProgressLabel() -> String? {
+    guard shouldShowJobIndex && totalJobs > 1 else {
+      return nil
+    }
+
+    return "\(min(currentJobIndex + 1, totalJobs))/\(totalJobs)"
+  }
+
+  func statusSymbolName() -> String? {
+    switch dropPromptState {
+    case .hovering:
+      return "flame.fill"
+    default:
+      return nil
+    }
+  }
+
+  func progressSymbolName() -> String? {
+    if currentTask.hasPrefix("Done!") {
+      return "checkmark.circle.fill"
+    }
+
+    return nil
   }
 
   func handleDrop(providers: [NSItemProvider]) -> Bool {
@@ -352,7 +374,7 @@ final class DropViewModel: ObservableObject {
     if showCompletionMessage {
       let videoLabel = successfulJobs == 1 ? "video" : "videos"
       progress = 1
-      currentTask = "✅ Done! Created \(successfulJobs) \(videoLabel)"
+      currentTask = "Done! Created \(successfulJobs) \(videoLabel)"
       shouldShowJobIndex = false
       sendCompletionNotification(processed: successfulJobs, total: totalJobs)
 
