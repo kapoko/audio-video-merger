@@ -34,6 +34,8 @@ final class DropViewModel: ObservableObject {
   private var totalWeightBytes: Double = 1
   private var completedWeightBytes: Double = 0
   private var shouldShowJobIndex = false
+  private var activeProgressToken = UUID()
+  private var lastLocalProgressForActiveJob: Double = 0
 
   private var isAppBundle: Bool {
     Bundle.main.bundleURL.pathExtension == "app"
@@ -218,21 +220,35 @@ final class DropViewModel: ObservableObject {
     completedWeightBytes = 0
     overwriteAllExistingFiles = false
 
-    ffmpegProcessor.onProgressUpdate = { [weak self] localProgress, task in
-      Task { @MainActor in
-        self?.handleProgressUpdate(localProgress: localProgress, task: task)
-      }
-    }
-
     Task {
       await processJobs(jobs)
     }
   }
 
-  private func handleProgressUpdate(localProgress: Double, task: String) {
+  private func configureProgressHandler(forJobAt index: Int) {
+    let token = UUID()
+    activeProgressToken = token
+    lastLocalProgressForActiveJob = 0
+
+    ffmpegProcessor.onProgressUpdate = { [weak self] localProgress, task in
+      Task { @MainActor in
+        self?.handleProgressUpdate(localProgress: localProgress, task: task, token: token, index: index)
+      }
+    }
+  }
+
+  private func handleProgressUpdate(localProgress: Double, task: String, token: UUID, index: Int) {
+    guard token == activeProgressToken, index == currentJobIndex else {
+      return
+    }
+
+    let normalizedLocalProgress = min(max(localProgress, 0), 1)
+    let monotonicLocalProgress = max(lastLocalProgressForActiveJob, normalizedLocalProgress)
+    lastLocalProgressForActiveJob = monotonicLocalProgress
+
     let currentWeight = weightForJob(at: currentJobIndex)
     let weightedProgress =
-      (completedWeightBytes + localProgress * currentWeight) / totalWeightBytes
+      (completedWeightBytes + monotonicLocalProgress * currentWeight) / totalWeightBytes
     progress = min(max(weightedProgress, 0), 1)
     currentTask = task
   }
@@ -308,6 +324,7 @@ final class DropViewModel: ObservableObject {
   private func processJobs(_ jobs: [(videoURL: URL, audioURL: URL, outputURL: URL)]) async {
     for index in jobs.indices {
       currentJobIndex = index
+      configureProgressHandler(forJobAt: index)
       let job = jobs[index]
 
       let shouldProceed = await confirmOverwriteIfNeeded(for: job.outputURL)
@@ -430,6 +447,8 @@ final class DropViewModel: ObservableObject {
     totalWeightBytes = 1
     completedWeightBytes = 0
     overwriteAllExistingFiles = false
+    activeProgressToken = UUID()
+    lastLocalProgressForActiveJob = 0
 
     droppedVideoURLs.removeAll()
     droppedAudioURLs.removeAll()
