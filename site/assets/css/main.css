@@ -1,0 +1,353 @@
+@import "https://fonts.googleapis.com/css2?family=Merriweather&family=Roboto:wght@400;700&display=swap";
+
+:root {
+    --font-family-headers: "Roboto", sans-serif;
+    --font-family-base: "Merriweather", serif;
+    --line-height-base: 1.8;
+    --primary: #fbc50c;
+    --secondary: #be3d16;
+    --font-size-base: 1.1rem;
+    --font-weight-normal: 400;
+    --font-weight-bold: 700;
+    --body-color: #212529;
+    --page-background: #fff;
+    --grid-gutter-width: 1.5rem;
+    --container-max-width: 1280px;
+    --breakpoint-sm: 576px;
+    --breakpoint-md: 768px;
+    --breakpoint-lg: 992px;
+    --video-ratio: 0.6739640344;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+html,
+body {
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background: var(--page-background);
+    color: var(--body-color);
+    font-family: var(--font-family-base);
+    font-size: var(--font-size-base);
+    line-height: var(--line-height-base);
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    font-family: var(--font-family-headers);
+    font-weight: var(--font-weight-bold);
+}
+
+a {
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+.container {
+    margin: 0 auto;
+    max-width: var(--container-max-width);
+    padding-left: calc(var(--grid-gutter-width) * 0.5);
+    padding-right: calc(var(--grid-gutter-width) * 0.5);
+}
+
+.row {
+    display: flex;
+    flex-wrap: wrap;
+    margin-left: calc(var(--grid-gutter-width) * -0.5);
+    margin-right: calc(var(--grid-gutter-width) * -0.5);
+}
+
+.col-12,
+.col-lg-6 {
+    padding-left: calc(var(--grid-gutter-width) * 0.5);
+    padding-right: calc(var(--grid-gutter-width) * 0.5);
+    width: 100%;
+}
+
+@media (min-width: 992px) {
+    .col-lg-6 {
+        width: 50%;
+    }
+}
+
+.d-flex {
+    display: flex;
+}
+
+.flex-row {
+    flex-direction: row;
+}
+
+.flex-wrap {
+    flex-wrap: wrap;
+}
+
+.justify-content-center {
+    justify-content: center;
+}
+
+.gap-2 {
+    gap: 0.5rem;
+}
+
+.text-center {
+    text-align: center;
+}
+
+.mt-2 {
+    margin-top: 0.5rem;
+}
+
+.mt-3 {
+    margin-top: 1rem;
+}
+
+.mt-4 {
+    margin-top: 1.5rem;
+}
+
+.my-3 {
+    margin-bottom: 1rem;
+    margin-top: 1rem;
+}
+
+.mr-2 {
+    margin-right: 0.5rem;
+}
+
+.ms-4 {
+    margin-left: 1.5rem;
+}
+
+@media (min-width: 768px) {
+    .my-md-4 {
+        margin-bottom: 1.5rem;
+        margin-top: 1.5rem;
+    }
+
+    .mt-md-5 {
+        margin-top: 3rem;
+    }
+}
+
+@media (min-width: 992px) {
+    .my-lg-0 {
+        margin-bottom: 0;
+        margin-top: 0;
+    }
+
+    .mt-lg-0 {
+        margin-top: 0;
+    }
+
+    .pe-lg-5 {
+        padding-right: 3rem;
+    }
+
+    .text-lg-start {
+        text-align: left;
+    }
+
+    .justify-content-lg-start {
+        justify-content: flex-start;
+    }
+}
+
+@keyframes move-gradient {
+    50% {
+        background-position: 100% 50%;
+    }
+}
+
+.download-button {
+    align-items: center;
+    animation: moveGradient 2s infinite alternate;
+    background: linear-gradient(60deg, var(--secondary) 0%, var(--primary) 100%);
+    background-position: 0 50%;
+    background-size: 200% 200%;
+    border: 0;
+    box-shadow: 0 5px 21px 0 rgba(0, 0, 0, 0.3);
+    color: #fff;
+    cursor: pointer;
+    display: flex;
+    flex: 1 1 0;
+    flex-direction: row;
+    font-family: var(--font-family-headers);
+    font-size: 1.5em;
+    font-weight: var(--font-weight-bold);
+    padding: 0.4em 0.8em;
+    position: relative;
+    text-decoration: none;
+    transition: box-shadow 0.3s;
+}
+
+.download-button:hover,
+.download-button:active {
+    text-decoration: none;
+}
+
+.download-button::before {
+    background-color: #000;
+    content: "";
+    display: block;
+    inset: 0;
+    position: absolute;
+    transition: opacity 0.3s;
+    z-index: 0;
+}
+
+.download-button::after {
+    background-color: #fff;
+    content: "";
+    display: block;
+    inset: 5px 5px 5px 5px;
+    position: absolute;
+    transform: scaleX(0);
+    transform-origin: 0 50%;
+    transition: cubic-bezier(0.33, 1, 0.68, 1) transform 0.3s;
+    z-index: 0;
+}
+
+.download-button svg {
+    font-size: 1.5em !important;
+    margin-right: 0.5em;
+    transition: color 0.15s 0.075s;
+    z-index: 1;
+}
+
+.download-button small {
+    font-size: 0.5em;
+    font-weight: var(--font-weight-normal);
+}
+
+.download-button .version {
+    margin-top: -0.3em;
+}
+
+.download-button > span {
+    display: flex;
+    flex-direction: column;
+    line-height: 1em;
+    margin-top: -0.15em;
+    text-align: left;
+    transition: color 0.15s;
+    z-index: 1;
+}
+
+.download-button > span > span {
+    white-space: nowrap;
+}
+
+.download-button:hover {
+    box-shadow: none;
+    color: #000;
+}
+
+.download-button:hover::before {
+    opacity: 0;
+    transition: opacity 0.15s;
+}
+
+.download-button:hover::after {
+    transform: scaleX(0.9999);
+}
+
+.download-button:hover svg {
+    transition: color 0.15s;
+}
+
+.download-button:hover > span {
+    transition: color 0.18s 0.03s;
+}
+
+@media (min-width: 992px) {
+    .download-button {
+        flex: 0 0 auto;
+    }
+}
+
+.hero {
+    align-items: center;
+    display: flex;
+    padding: 1rem 0;
+}
+
+@media (min-width: 992px) {
+    .hero {
+        height: 100vh;
+    }
+}
+
+@media (min-width: 992px) {
+    .hero p {
+        font-size: 1.2em;
+    }
+}
+
+.hero .bottom-links a {
+    color: var(--body-color);
+}
+
+.hero img {
+    width: 120px;
+}
+
+.hero-video {
+    background: #ccc;
+    overflow: hidden;
+    position: relative;
+}
+
+@media (min-width: 992px) {
+    .hero-video {
+        margin-right: calc(100% - 50vw + (var(--grid-gutter-width) * 0.5));
+        padding-bottom: calc((50vw - (var(--grid-gutter-width) * 0.5)) * var(--video-ratio));
+    }
+}
+
+@media (max-width: 991px) {
+    .hero-video {
+        padding-bottom: calc(100% * var(--video-ratio));
+    }
+}
+
+@media (max-width: 991px) {
+    .hero-video {
+        margin-left: calc(var(--grid-gutter-width) * -0.5);
+        margin-right: calc(var(--grid-gutter-width) * -0.5);
+        padding-bottom: calc(100vw * var(--video-ratio));
+    }
+}
+
+.hero-video video {
+    position: absolute;
+    width: 100%;
+}
+
+.not-found {
+    padding: 4rem 0;
+    text-align: center;
+}
+
+.not-found p {
+    font-size: 1rem;
+    margin: 0;
+}
+
+@media (min-width: 768px) {
+    .not-found p {
+        font-size: 1.25rem;
+    }
+}

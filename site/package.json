@@ -1,67 +1,37 @@
 {
-  "name": "audio-video-merger-site",
-  "version": "1.0.0",
-  "description": "Site for AudioVideoMerger built on Hugo",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/kapoko/audio-video-merger.git"
-  },
-  "scripts": {
-    "lint": "eslint src",
-    "start": "concurrently \"npm run start:hugo\" \"npm run start:webpack\"",
-    "start:hugo": "hugo server -D",
-    "start:webpack": "NODE_ENV=development webpack",
-    "build": "NODE_ENV=production webpack && hugo --minify"
-  },
-  "author": {
-    "name": "kapoko",
-    "email": "kasper.koman@gmail.com"
-  },
-  "license": "GPL-3.0",
-  "browserslist": {
-    "production": [
-      "defaults"
-    ],
-    "development": [
-      "last 1 chrome version",
-      "last 1 firefox version"
-    ]
-  },
-  "stylelint": {
-    "extends": "stylelint-config-standard-scss",
-    "ignoreFiles": [
-      "public/*",
-      "dist/*"
-    ]
-  },
-  "devDependencies": {
-    "assets-webpack-plugin": "^7.1.1",
-    "clean-webpack-plugin": "^4.0.0",
-    "concurrently": "^9.2.1",
-    "copy-webpack-plugin": "^14.0.0",
-    "css-loader": "^7.1.4",
-    "css-modules-typescript-loader": "^4.0.1",
-    "glob-all": "^3.3.1",
-    "mini-css-extract-plugin": "^2.10.2",
-    "postcss-loader": "^8.2.1",
-    "postcss-preset-env": "^11.2.1",
-    "purgecss-webpack-plugin": "^8.0.0",
-    "sass": "^1.99.0",
-    "sass-loader": "^16.0.7",
-    "style-loader": "^4.0.0",
-    "stylelint": "^17.8.0",
-    "stylelint-config-standard-scss": "^17.0.0",
-    "stylelint-webpack-plugin": "^5.1.0",
-    "ts-loader": "^9.5.7",
-    "typescript": "^6.0.3",
-    "webpack": "^5.106.2",
-    "webpack-cli": "^7.0.2"
-  },
-  "dependencies": {
-    "@fortawesome/fontawesome-svg-core": "^7.2.0",
-    "@fortawesome/free-brands-svg-icons": "^7.2.0",
-    "@fortawesome/free-solid-svg-icons": "^7.2.0",
-    "bootstrap": "^5.3.8"
-  },
-  "packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e"
+    "name": "audio-video-merger-site",
+    "version": "1.0.0",
+    "description": "Site for AudioVideoMerger built on Hugo",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/kapoko/audio-video-merger.git"
+    },
+    "scripts": {
+        "lint": "eslint src",
+        "start": "HUGO_APP_VERSION=$(cat ../VERSION) HUGO_ENV=development hugo server -D",
+        "build": "HUGO_APP_VERSION=$(cat ../VERSION) HUGO_ENV=production hugo --minify"
+    },
+    "author": {
+        "name": "kapoko",
+        "email": "17455539+kapoko@users.noreply.github.com"
+    },
+    "license": "GPL-3.0",
+    "browserslist": {
+        "production": [
+            "defaults"
+        ],
+        "development": [
+            "last 1 chrome version",
+            "last 1 firefox version"
+        ]
+    },
+    "devDependencies": {
+        "typescript": "^6.0.3"
+    },
+    "dependencies": {
+        "@fortawesome/fontawesome-svg-core": "^7.2.0",
+        "@fortawesome/free-brands-svg-icons": "^7.2.0",
+        "@fortawesome/free-solid-svg-icons": "^7.2.0"
+    },
+    "packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e"
 }

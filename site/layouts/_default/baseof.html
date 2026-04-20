@@ -14,10 +14,24 @@
     {{ partial "head/og.html" . }}
     {{ partial "head/analytics.html" . }}
 
-    {{ $script := hugo.Data.manifest.main }}
-    {{ with $script.css }}
-    <link rel="stylesheet" href="{{ absURL . }}">
+    {{ $isProd := hugo.IsProduction }}
+    {{ $styles := resources.Get "css/main.css" }}
+    {{ if $isProd }}
+    {{ $styles = $styles | minify | fingerprint }}
     {{ end }}
+
+    {{ $jsOpts := dict "targetPath" "main.js" "format" "iife" "target" "es2015" }}
+    {{ if $isProd }}
+    {{ $jsOpts = merge $jsOpts (dict "minify" true) }}
+    {{ else }}
+    {{ $jsOpts = merge $jsOpts (dict "sourcemap" "linked") }}
+    {{ end }}
+    {{ $script := resources.Get "js/main.ts" | js.Build $jsOpts }}
+    {{ if $isProd }}
+    {{ $script = $script | fingerprint }}
+    {{ end }}
+
+    <link rel="stylesheet" href="{{ $styles.RelPermalink }}">
 </head>
 
 <body>
@@ -30,9 +44,7 @@
 
     {{ partial "footer.html" . }}
 
-    {{ with $script.js }}
-    <script type="text/javascript" src="{{ absURL . }}"></script>
-    {{ end }}
+    <script type="text/javascript" src="{{ $script.RelPermalink }}"></script>
 </body>
 
 </html>
