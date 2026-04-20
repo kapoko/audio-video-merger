@@ -45,13 +45,13 @@ make bundle
 make bundle-x86_64
 make bundle-arm64
 
-# Create release zip assets
-make zip
-make zip-x86_64
-make zip-arm64
+# Create release DMG assets
+make dmg
+make dmg-x86_64
+make dmg-arm64
 ```
 
-Build outputs are written to `dist/` (`dist/apps/*.app` and release zip assets in `dist/*.zip`).
+Build outputs are written to `dist/` (`dist/apps/*.app` and release DMGs in `dist/*.dmg`).
 
 ## Notifications and app verification
 
@@ -86,4 +86,3 @@ swift build
 ## Project history
 
 **v2+** is a complete Swift/macOS rewrite, as I didn't want to bundle electron in such a simple app anymore. If you need the old V1 source code, check tags matching `v1.x.x`.
-

@@ -1,8 +1,6 @@
 .build/
 .DS_Store
-Resources/*
-!Resources/AppIcon.icns
-!Resources/logo.png
+Resources/*ffmpeg*
 *.wav
 *.mp4
 *.app

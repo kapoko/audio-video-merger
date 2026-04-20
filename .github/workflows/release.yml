@@ -20,7 +20,7 @@ jobs:
       - name: Download build artifacts
         uses: actions/download-artifact@v8
         with:
-          pattern: zip-*
+          pattern: dmg-*
           path: dist
           merge-multiple: true
 
@@ -28,4 +28,4 @@ jobs:
         uses: softprops/action-gh-release@v3
         with:
           prerelease: ${{ contains(github.ref_name, 'beta') }}
-          files: dist/*.zip
+          files: dist/*.dmg

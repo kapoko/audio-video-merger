@@ -20,13 +20,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
-      - name: Build and package app zip
-        run: make zip-${{ matrix.arch }}
+      - name: Build and package DMG
+        run: make dmg-${{ matrix.arch }}
 
-      - name: Upload app zip
+      - name: Upload DMG artifact
         uses: actions/upload-artifact@v7
         with:
-          name: zip-${{ matrix.arch }}
-          path: dist/AudioVideoMerger-darwin-${{ matrix.arch }}-*.zip
+          name: dmg-${{ matrix.arch }}
+          path: dist/AudioVideoMerger-darwin-${{ matrix.arch }}-*.dmg
           if-no-files-found: error
           compression-level: 0

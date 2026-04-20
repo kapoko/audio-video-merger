@@ -1,12 +1,13 @@
-.PHONY: all ffmpeg setup build build-x86_64 build-arm64 build-all run clean dev bundle bundle-x86_64 bundle-arm64 zip zip-x86_64 zip-arm64
+.PHONY: all ffmpeg setup build build-x86_64 build-arm64 build-all run clean dev bundle bundle-x86_64 bundle-arm64 dmg dmg-x86_64 dmg-arm64
 
 APP_NAME := Audio Video Merger.app
 EXECUTABLE := AudioVideoMerger
 DIST_DIR := dist
 APP_BUNDLE_DIR := $(DIST_DIR)/apps
-APP_X86_64 := $(APP_BUNDLE_DIR)/Audio Video Merger-x86_64.app
-APP_ARM64 := $(APP_BUNDLE_DIR)/Audio Video Merger-arm64.app
 APP_VERSION := $(shell tr -d '[:space:]' < VERSION)
+DMG_TEMPLATE_DIR := Resources/packaging/dmg-template
+DMG_TEMPLATE_DSSTORE := $(DMG_TEMPLATE_DIR)/dmg-layout.DS_Store
+DMG_TEMPLATE_BACKGROUND := $(DMG_TEMPLATE_DIR)/background.tiff
 
 # Default target
 all: setup build
@@ -57,54 +58,47 @@ dev:
 bundle: bundle-x86_64 bundle-arm64
 	@echo "Both architecture bundles created"
 
-# Create x86_64 app bundle
-bundle-x86_64: build-x86_64 setup
-	@echo "Creating x86_64 app bundle..."
+# Create architecture-specific app bundle
+bundle-x86_64 bundle-arm64: bundle-%: build-% setup
+	@echo "Creating $* app bundle..."
 	@mkdir -p "$(APP_BUNDLE_DIR)"
-	rm -rf "$(APP_X86_64)"
-	mkdir -p "$(APP_X86_64)/Contents/MacOS"
-	mkdir -p "$(APP_X86_64)/Contents/Resources"
-	cp .build/x86_64-apple-macosx/release/$(EXECUTABLE) "$(APP_X86_64)/Contents/MacOS/"
-	cp Resources/ffmpeg-x86_64 "$(APP_X86_64)/Contents/Resources/"
-	cp Resources/AppIcon.icns "$(APP_X86_64)/Contents/Resources/"
-	cp Info.plist "$(APP_X86_64)/Contents/"
-	codesign --force --deep --sign - "$(APP_X86_64)"
-	@echo "App bundle created: $(APP_X86_64)"
+	@app_bundle="$(APP_BUNDLE_DIR)/Audio Video Merger-$*.app"; \
+		rm -rf "$$app_bundle"; \
+		mkdir -p "$$app_bundle/Contents/MacOS"; \
+		mkdir -p "$$app_bundle/Contents/Resources"; \
+		cp ".build/$*-apple-macosx/release/$(EXECUTABLE)" "$$app_bundle/Contents/MacOS/"; \
+		cp "Resources/ffmpeg-$*" "$$app_bundle/Contents/Resources/"; \
+		cp "Resources/AppIcon.icns" "$$app_bundle/Contents/Resources/"; \
+		cp "Info.plist" "$$app_bundle/Contents/"; \
+		codesign --force --deep --sign - "$$app_bundle"; \
+		echo "App bundle created: $$app_bundle"
 
-# Create arm64 app bundle
-bundle-arm64: build-arm64 setup
-	@echo "Creating arm64 app bundle..."
-	@mkdir -p "$(APP_BUNDLE_DIR)"
-	rm -rf "$(APP_ARM64)"
-	mkdir -p "$(APP_ARM64)/Contents/MacOS"
-	mkdir -p "$(APP_ARM64)/Contents/Resources"
-	cp .build/arm64-apple-macosx/release/$(EXECUTABLE) "$(APP_ARM64)/Contents/MacOS/"
-	cp Resources/ffmpeg-arm64 "$(APP_ARM64)/Contents/Resources/"
-	cp Resources/AppIcon.icns "$(APP_ARM64)/Contents/Resources/"
-	cp Info.plist "$(APP_ARM64)/Contents/"
-	codesign --force --deep --sign - "$(APP_ARM64)"
-	@echo "App bundle created: $(APP_ARM64)"
+# Create both DMG assets
+dmg: dmg-x86_64 dmg-arm64
+	@echo "All DMG assets created"
 
-# Zip x86_64 bundle with normalized app name
-zip-x86_64: bundle-x86_64
-	@echo "Creating x86_64 zip asset..."
+# Create architecture-specific DMG with installer layout
+dmg-x86_64 dmg-arm64: dmg-%: bundle-%
+	@echo "Creating $* DMG asset..."
 	@mkdir -p "$(DIST_DIR)"
 	@tmpdir="$$(mktemp -d)"; \
-		ditto "$(APP_X86_64)" "$$tmpdir/$(APP_NAME)"; \
-		ditto -c -k --sequesterRsrc --keepParent "$$tmpdir/$(APP_NAME)" "$(DIST_DIR)/AudioVideoMerger-darwin-x86_64-$(APP_VERSION).zip"; \
-		rm -rf "$$tmpdir"
-	@echo "Created $(DIST_DIR)/AudioVideoMerger-darwin-x86_64-$(APP_VERSION).zip"
-
-# Zip arm64 bundle with normalized app name
-zip-arm64: bundle-arm64
-	@echo "Creating arm64 zip asset..."
-	@mkdir -p "$(DIST_DIR)"
-	@tmpdir="$$(mktemp -d)"; \
-		ditto "$(APP_ARM64)" "$$tmpdir/$(APP_NAME)"; \
-		ditto -c -k --sequesterRsrc --keepParent "$$tmpdir/$(APP_NAME)" "$(DIST_DIR)/AudioVideoMerger-darwin-arm64-$(APP_VERSION).zip"; \
-		rm -rf "$$tmpdir"
-	@echo "Created $(DIST_DIR)/AudioVideoMerger-darwin-arm64-$(APP_VERSION).zip"
-
-# Create both zip assets
-zip: zip-x86_64 zip-arm64
-	@echo "All zip assets created"
+		set -e; \
+		stage="$$tmpdir/stage"; \
+		rw_dmg="$$tmpdir/AudioVideoMerger-rw.dmg"; \
+		mountpoint="$$tmpdir/mnt"; \
+		final_dmg="$(DIST_DIR)/AudioVideoMerger-darwin-$*-$(APP_VERSION).dmg"; \
+		app_bundle="$(APP_BUNDLE_DIR)/Audio Video Merger-$*.app"; \
+		mkdir -p "$$stage"; \
+		mkdir -p "$$stage/.background"; \
+		cp "$(DMG_TEMPLATE_BACKGROUND)" "$$stage/.background/background.tiff"; \
+		ditto "$$app_bundle" "$$stage/$(APP_NAME)"; \
+		ln -s /Applications "$$stage/Applications"; \
+		chflags hidden "$$stage/.background"; \
+		hdiutil create -quiet -ov -srcfolder "$$stage" -volname "Audio Video Merger $(APP_VERSION)" -fs HFS+ -format UDRW "$$rw_dmg"; \
+		mkdir -p "$$mountpoint"; \
+		hdiutil attach -quiet -readwrite -noverify -noautoopen -mountpoint "$$mountpoint" "$$rw_dmg"; \
+		cp "$(DMG_TEMPLATE_DSSTORE)" "$$mountpoint/.DS_Store"; \
+		hdiutil detach "$$mountpoint" -quiet; \
+		hdiutil convert -quiet -ov "$$rw_dmg" -format UDZO -imagekey zlib-level=9 -o "$$final_dmg"; \
+		rm -rf "$$tmpdir"; \
+		echo "Created $$final_dmg"
