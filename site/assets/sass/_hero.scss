@@ -34,18 +34,18 @@
     position: relative;
 
     @include media-breakpoint-up(lg) {
-        margin-right: calc(100% - 50vw + #{$grid-gutter-width * 0.5});
-        padding-bottom: calc((50vw - #{$grid-gutter-width * 0.5}) * #{$video-ratio});
+        margin-right: calc(100% - 50vw + ($grid-gutter-width * 0.5));
+        padding-bottom: calc((50vw - ($grid-gutter-width * 0.5)) * $video-ratio);
     }
 
     @include media-breakpoint-down(md) {
-        padding-bottom: calc(100% * #{$video-ratio});
+        padding-bottom: calc(100% * $video-ratio);
     }
 
-    @include media-breakpoint-down(xs) {
+    @include media-breakpoint-down(sm) {
         margin-left: -$grid-gutter-width * 0.5;
         margin-right: -$grid-gutter-width * 0.5;
-        padding-bottom: calc(100vw * #{$video-ratio});
+        padding-bottom: calc(100vw * $video-ratio);
     }
 
     video {
