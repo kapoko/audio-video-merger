@@ -15,7 +15,7 @@ AudioVideoMerger is an open source one-trick pony for painlessly replacing audio
 
 ## In action
 
-![Demo](https://i.imgur.com/CUIK93h.gif)
+![Demo](https://i.imgur.com/2hqolDx.gif)
 
 ## Why
 
