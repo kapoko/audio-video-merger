@@ -30,3 +30,54 @@ jobs:
           path: dist/AudioVideoMerger-darwin-${{ matrix.arch }}-*.dmg
           if-no-files-found: error
           compression-level: 0
+
+  site:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+
+      - name: Setup Hugo
+        uses: peaceiris/actions-hugo@v3
+        with:
+          hugo-version: 'latest'
+
+      - name: Install dependencies
+        run: |
+          cd ./site
+          npm install
+
+      - name: Build
+        run: |
+          cd ./site
+          npm run build
+
+      - name: Check out target repo
+        uses: actions/checkout@v4
+        with:
+          repository: audiovideomerger/audiovideomerger.github.io
+          token: ${{ secrets.API_TOKEN_GITHUB }}
+          path: target-repo
+
+      - name: Replace published files
+        run: |
+          rm -rf target-repo/*
+          cp -R site/public/. target-repo/
+
+      - name: Commit and push
+        run: |
+          cd target-repo
+          git config user.name "audiovideomerger"
+          git config user.email "${{ secrets.ARTIFACT_EMAIL }}"
+
+          git add .
+          git diff --cached --quiet && exit 0
+
+          git commit -m "Update from ${GITHUB_REPOSITORY}@${GITHUB_SHA}"
+          git push
