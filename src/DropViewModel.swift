@@ -1,8 +1,8 @@
 import AppKit
 import Combine
 import Foundation
-@preconcurrency import UserNotifications
 import UniformTypeIdentifiers
+@preconcurrency import UserNotifications
 
 enum DropPromptState: Equatable {
   case idle
@@ -232,7 +232,12 @@ final class DropViewModel: ObservableObject {
 
     ffmpegProcessor.onProgressUpdate = { [weak self] localProgress, task in
       Task { @MainActor in
-        self?.handleProgressUpdate(localProgress: localProgress, task: task, token: token, index: index)
+        self?.handleProgressUpdate(
+          localProgress: localProgress,
+          task: task,
+          token: token,
+          index: index
+        )
       }
     }
   }
@@ -427,7 +432,9 @@ final class DropViewModel: ObservableObject {
 
     center.add(request) { error in
       if let error {
-        print("[Notifications] Failed to schedule completion notification: \(error.localizedDescription)")
+        print(
+          "[Notifications] Failed to schedule completion notification: \(error.localizedDescription)"
+        )
       }
     }
   }

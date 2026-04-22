@@ -109,7 +109,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate,
     let window = NSWindow(contentViewController: hostingController)
     window.setContentSize(initialContentSize)
     window.contentMinSize = minimumContentSize
-    minimumFrameSize = window.frameRect(forContentRect: NSRect(origin: .zero, size: minimumContentSize)).size
+    let minimumFrame = window.frameRect(
+      forContentRect: NSRect(origin: .zero, size: minimumContentSize)
+    )
+    minimumFrameSize = minimumFrame.size
     window.minSize = minimumFrameSize
     window.delegate = self
     window.title = ""
