@@ -73,11 +73,10 @@ Build outputs are written to `dist/` (`dist/apps/*.app` and release DMGs in `dis
 This repo uses Swift formatting/linting and optional git hooks:
 
 ```bash
-brew install swiftlint lefthook
+brew install lefthook
 lefthook install
 
 swift format lint -r src
-swiftlint lint --strict
 swift build
 ```
 

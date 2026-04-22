@@ -8,7 +8,21 @@ on:
       - dev
 
 jobs:
+  checks:
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Swift format lint
+        run: swift format lint -r src
+
+      - name: Run tests
+        run: swift test
+
   build:
+    needs: checks
     runs-on: macos-latest
 
     strategy:

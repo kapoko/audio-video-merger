@@ -3,8 +3,6 @@ pre-commit:
   commands:
     swift-format:
       run: swift format lint -r src
-    swiftlint:
-      run: swiftlint lint --strict
 
 pre-push:
   commands:
