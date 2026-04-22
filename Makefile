@@ -94,7 +94,7 @@ dmg-x86_64 dmg-arm64: dmg-%: bundle-%
 		ditto "$$app_bundle" "$$stage/$(APP_NAME)"; \
 		ln -s /Applications "$$stage/Applications"; \
 		chflags hidden "$$stage/.background"; \
-		hdiutil create -quiet -ov -srcfolder "$$stage" -volname "Audio Video Merger $(APP_VERSION)" -fs HFS+ -format UDRW "$$rw_dmg"; \
+		hdiutil create -quiet -ov -srcfolder "$$stage" -volname "Audio Video Merger" -fs HFS+ -format UDRW "$$rw_dmg"; \
 		mkdir -p "$$mountpoint"; \
 		hdiutil attach -quiet -readwrite -noverify -noautoopen -mountpoint "$$mountpoint" "$$rw_dmg"; \
 		cp "$(DMG_TEMPLATE_DSSTORE)" "$$mountpoint/.DS_Store"; \
