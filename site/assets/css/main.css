@@ -47,6 +47,10 @@ h6 {
     font-weight: var(--font-weight-bold);
 }
 
+h1 {
+    font-size: 2.3em;
+}
+
 a {
     text-decoration: none;
 }
@@ -229,6 +233,11 @@ a:hover {
 
 .download-button small {
     font-size: 0.5em;
+    font-weight: var(--font-weight-normal);
+}
+
+.download-button .arch {
+    font-size: 0.6em;
     font-weight: var(--font-weight-normal);
 }
 
