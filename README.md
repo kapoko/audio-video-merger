@@ -1,6 +1,6 @@
 <img src="Resources/logo.png" title="AudioVideoMerger" alt="AudioVideoMerger logo" width="128">
 
-# [AudioVideoMerger](https://audiovideomerger.github.io)
+# [Audio Video Merger](https://audiovideomerger.github.io)
 
 AudioVideoMerger is an open source one-trick pony for painlessly replacing audio under video files. Since v2 rewritten as a native macOS app built with Swift.
 
