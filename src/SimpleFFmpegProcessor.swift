@@ -72,7 +72,7 @@ class SimpleFFmpegProcessor {
   ) {
     log("Starting conversion pipeline")
     DispatchQueue.main.async {
-      self.onProgressUpdate?(0.0, "Starting conversion...")
+      self.onProgressUpdate?(0.0, "Converting...")
     }
 
     // First get the duration of the video file
