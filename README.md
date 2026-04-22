@@ -1,13 +1,17 @@
 <img src="Resources/logo.png" title="AudioVideoMerger" alt="AudioVideoMerger logo" width="128">
 
-# AudioVideoMerger
+# [AudioVideoMerger](https://audiovideomerger.github.io)
 
-AudioVideoMerger is a native macOS app built with Swift for replacing audio under video files using FFmpeg, without re-encoding the video stream. 
+AudioVideoMerger is an open source one-trick pony for painlessly replacing audio under video files. Since v2 rewritten as a native macOS app built with Swift.
 
 - **Fast**: Copies video stream directly to avoid re-rendering.
 - **Simple**: Drag and drop files into the window, onto the app icon, or open files with the app.
 - **Batch-ready**: Automatically creates every video/audio combination when dropping multiple files.
 - **Self-contained**: Uses bundled FFmpeg binaries, so easy to install.
+
+## Download
+
+[**Download**](https://audiovideomerger.github.io) from the project website (https://audiovideomerger.github.io)
 
 ## In action
 
@@ -63,12 +67,6 @@ Build outputs are written to `dist/` (`dist/apps/*.app` and release DMGs in `dis
 - macOS 11 or later
 - Swift 5.7 or later
 - Internet connection for first-time FFmpeg download (`make ffmpeg` / `make setup`)
-
-## Download
-
-You can download releases from the project website:
-
-https://audiovideomerger.github.io
 
 ## Development tooling
 
