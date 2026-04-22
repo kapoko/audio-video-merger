@@ -16,10 +16,11 @@
     <string>AppIcon</string>
     <key>CFBundlePackageType</key>
     <string>APPL</string>
+    <!-- Version fields are injected from VERSION by Makefile during bundle creation. -->
     <key>CFBundleShortVersionString</key>
-    <string>2.0.0</string>
+    <string>__APP_VERSION__</string>
     <key>CFBundleVersion</key>
-    <string>2.0.0</string>
+    <string>__APP_BUILD_VERSION__</string>
     <key>LSMinimumSystemVersion</key>
     <string>11.0</string>
     <key>LSMultipleInstancesProhibited</key>

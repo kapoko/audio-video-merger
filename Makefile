@@ -5,6 +5,7 @@ EXECUTABLE := AudioVideoMerger
 DIST_DIR := dist
 APP_BUNDLE_DIR := $(DIST_DIR)/apps
 APP_VERSION := $(shell tr -d '[:space:]' < VERSION)
+APP_BUILD_VERSION := $(shell tr -d '[:space:]' < VERSION | sed 's/-.*//')
 DMG_TEMPLATE_DIR := Resources/packaging/dmg-template
 DMG_TEMPLATE_DSSTORE := $(DMG_TEMPLATE_DIR)/dmg-layout.DS_Store
 DMG_TEMPLATE_BACKGROUND := $(DMG_TEMPLATE_DIR)/background.tiff
@@ -70,6 +71,8 @@ bundle-x86_64 bundle-arm64: bundle-%: build-% setup
 		cp "Resources/ffmpeg-$*" "$$app_bundle/Contents/Resources/"; \
 		cp "Resources/AppIcon.icns" "$$app_bundle/Contents/Resources/"; \
 		cp "Info.plist" "$$app_bundle/Contents/"; \
+		/usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString $(APP_VERSION)" "$$app_bundle/Contents/Info.plist"; \
+		/usr/libexec/PlistBuddy -c "Set :CFBundleVersion $(APP_BUILD_VERSION)" "$$app_bundle/Contents/Info.plist"; \
 		codesign --force --deep --sign - "$$app_bundle"; \
 		echo "App bundle created: $$app_bundle"
 
