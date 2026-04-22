@@ -53,7 +53,7 @@ final class SmokeTests: XCTestCase {
             URL(fileURLWithPath: "/tmp/b.wav"),
             URL(fileURLWithPath: "/tmp/v1.mp4"),
             URL(fileURLWithPath: "/tmp/v2.mov"),
-            URL(fileURLWithPath: "/tmp/v3.mkv")
+            URL(fileURLWithPath: "/tmp/v3.m4v")
         ]
 
         let result = FileValidator.validate(urls: urls)
