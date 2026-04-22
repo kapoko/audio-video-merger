@@ -1,6 +1,6 @@
 <img src="Resources/logo.png" title="AudioVideoMerger" alt="AudioVideoMerger logo" width="128">
 
-# [Audio Video Merger](https://audiovideomerger.github.io)
+# Audio Video Merger
 
 [![](https://github.com/kapoko/audio-video-merger/actions/workflows/build.yml/badge.svg?branch=main)](https://github.com/kapoko/audio-video-merger/actions/workflows/build.yml)
 [![](https://github.com/kapoko/audio-video-merger/actions/workflows/release.yml/badge.svg)](https://github.com/kapoko/audio-video-merger/actions)
@@ -12,9 +12,9 @@ AudioVideoMerger is an open source one-trick pony for painlessly replacing audio
 - **Batch-ready**: Automatically creates every video/audio combination when dropping multiple files.
 - **Self-contained**: Uses bundled FFmpeg binaries, so easy to install.
 
-## Download
+## [Download](https://audiovideomerger.github.io)
 
-[**Download**](https://audiovideomerger.github.io) from the project website (https://audiovideomerger.github.io)
+Downloads are available from the project website: [audiovideomerger.github.io](https://audiovideomerger.github.io)
 
 ## In action
 
