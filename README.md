@@ -2,7 +2,7 @@
 
 # AudioVideoMerger
 
-AudioVideoMerger is a macOS app for replacing audio under video files using FFmpeg, without re-encoding the video stream.
+AudioVideoMerger is a native macOS app built with Swift for replacing audio under video files using FFmpeg, without re-encoding the video stream. 
 
 - **Fast**: Copies video stream directly to avoid re-rendering.
 - **Simple**: Drag and drop files into the window, onto the app icon, or open files with the app.
