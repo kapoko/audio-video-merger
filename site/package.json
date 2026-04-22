@@ -8,8 +8,8 @@
     },
     "scripts": {
         "lint": "eslint src",
-        "start": "HUGO_APP_VERSION=$(cat ../VERSION) HUGO_ENV=development hugo server -D",
-        "build": "HUGO_APP_VERSION=$(cat ../VERSION) HUGO_ENV=production hugo --minify"
+        "start": "HUGO_APP_VERSION=${HUGO_APP_VERSION:-${APP_VERSION:-$(cat ../VERSION)}} HUGO_ENV=development hugo server -D",
+        "build": "HUGO_APP_VERSION=${HUGO_APP_VERSION:-${APP_VERSION:-$(cat ../VERSION)}} HUGO_ENV=production hugo --minify"
     },
     "author": {
         "name": "kapoko",

@@ -5,9 +5,6 @@ on:
     tags:
       - "v*"
 
-permissions:
-  contents: write
-
 jobs:
   build:
     uses: ./.github/workflows/build.yml
@@ -15,6 +12,8 @@ jobs:
   release:
     needs: build
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
 
     steps:
       - name: Download build artifacts

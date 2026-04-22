@@ -5,10 +5,14 @@ on:
   push:
     branches:
       - main
+      - dev
 
 jobs:
   site:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./site
 
     steps:
       - name: Checkout
@@ -24,27 +28,40 @@ jobs:
         with:
           hugo-version: 'latest'
 
-      - name: Install dependencies
+      - name: Resolve latest stable release version
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
         run: |
-          cd ./site
-          npm install
+          set -euo pipefail
+          stable_tag="$(curl -fsSL \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer $GITHUB_TOKEN" \
+            "https://api.github.com/repos/kapoko/audio-video-merger/releases?per_page=50" \
+            | jq -r 'map(select(.draft == false and .prerelease == false)) | first | .tag_name // empty')"
+
+          test -n "$stable_tag"
+          stable_version="${stable_tag#v}"
+          test -n "$stable_version"
+
+          printf 'HUGO_APP_VERSION=%s\n' "$stable_version" >> "$GITHUB_ENV"
+
+      - name: Install dependencies
+        run: npm install
 
       - name: Build
-        run: |
-          cd ./site
-          npm run build
+        run: npm run build
 
       - name: Check out target repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           repository: audiovideomerger/audiovideomerger.github.io
           token: ${{ secrets.API_TOKEN_GITHUB }}
-          path: target-repo
+          path: site/target-repo
 
       - name: Replace published files
         run: |
           rm -rf target-repo/*
-          cp -R site/public/. target-repo/
+          cp -R public/. target-repo/
 
       - name: Commit and push
         run: |
