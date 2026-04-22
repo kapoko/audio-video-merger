@@ -8,7 +8,7 @@ on:
       - dev
 
 jobs:
-  site:
+  build:
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -51,12 +51,30 @@ jobs:
       - name: Build
         run: npm run build
 
+      - name: Upload site artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: site-public
+          path: site/public
+          if-no-files-found: error
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+
       - name: Check out target repo
         uses: actions/checkout@v6
         with:
           repository: audiovideomerger/audiovideomerger.github.io
           token: ${{ secrets.API_TOKEN_GITHUB }}
-          path: site/target-repo
+          path: target-repo
+
+      - name: Download site artifact
+        uses: actions/download-artifact@v8
+        with:
+          name: site-public
+          path: public
 
       - name: Replace published files
         run: |
@@ -64,8 +82,8 @@ jobs:
           cp -R public/. target-repo/
 
       - name: Commit and push
+        working-directory: ./target-repo
         run: |
-          cd target-repo
           git config user.name "audiovideomerger"
           git config user.email "${{ secrets.ARTIFACT_EMAIL }}"
 
