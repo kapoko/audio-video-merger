@@ -2,6 +2,9 @@
 
 # [Audio Video Merger](https://audiovideomerger.github.io)
 
+[![](https://github.com/kapoko/audio-video-merger/actions/workflows/build.yml/badge.svg?branch=main)](https://github.com/kapoko/audio-video-merger/actions/workflows/build.yml)
+[![](https://github.com/kapoko/audio-video-merger/actions/workflows/release.yml/badge.svg)](https://github.com/kapoko/audio-video-merger/actions)
+
 AudioVideoMerger is an open source one-trick pony for painlessly replacing audio under video files. Since v2 rewritten as a native macOS app built with Swift.
 
 - **Fast**: Copies video stream directly to avoid re-rendering.
