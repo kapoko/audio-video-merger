@@ -7,7 +7,6 @@ OUTPUT_DIR="${2:-./site/static}"
 RELEASE_TAG="${3:-}"
 REPO="${4:-${GITHUB_REPOSITORY:-}}"
 RELEASE_CHANNEL="${5:-}"
-RELEASE_VERSION="${RELEASE_TAG#v}"
 
 if [[ -z "${INPUT_DIR}" || -z "${RELEASE_TAG}" || -z "${REPO}" ]]; then
   echo "Missing required argument(s)" >&2
@@ -31,16 +30,12 @@ fi
 
 find_asset() {
   local pattern="$1"
-  local name_contains="${2:-}"
   local file_name
   local asset=""
 
   shopt -s nullglob
   for file_name in "${INPUT_DIR}"/*; do
     if [[ -f "${file_name}" && "$(basename "${file_name}")" =~ ${pattern} ]]; then
-      if [[ -n "${name_contains}" && "$(basename "${file_name}")" != *"${name_contains}"* ]]; then
-        continue
-      fi
       asset="${file_name}"
       break
     fi
@@ -71,14 +66,7 @@ generate_feed_for_arch() {
   fi
 
   local asset_path
-  if ! asset_path="$(find_asset "${pattern}" "-${RELEASE_VERSION}.")"; then
-    if ! asset_path="$(find_asset "${pattern}")"; then
-      echo "Missing ${arch_label} release asset in ${INPUT_DIR}" >&2
-      exit 1
-    fi
-  fi
-
-  if [[ ! -f "${asset_path}" ]]; then
+  if ! asset_path="$(find_asset "${pattern}")"; then
     echo "Missing ${arch_label} release asset in ${INPUT_DIR}" >&2
     exit 1
   fi

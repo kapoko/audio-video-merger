@@ -48,30 +48,12 @@ jobs:
   appcast:
     needs:
       - release
+      - release-metadata
     runs-on: macos-latest
 
     steps:
       - name: Checkout
         uses: actions/checkout@v6
-
-      - name: Fetch release metadata
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-          GITHUB_REPOSITORY: ${{ github.repository }}
-        run: |
-          set -euo pipefail
-          curl -fsSL \
-            -H "Accept: application/vnd.github+json" \
-            -H "Authorization: Bearer ${GITHUB_TOKEN}" \
-            "https://api.github.com/repos/${GITHUB_REPOSITORY}/releases?per_page=50" \
-            > release-metadata.json
-
-      - name: Resolve release tags
-        run: |
-          set -euo pipefail
-          stable_tag="$(jq -r 'map(select(.draft == false and .prerelease == false)) | first | .tag_name // empty' release-metadata.json)"
-          test -n "${stable_tag}"
-          printf 'STABLE_TAG=%s\n' "${stable_tag}" >> "$GITHUB_ENV"
 
       - name: Seed existing appcasts
         run: |
@@ -82,21 +64,23 @@ jobs:
 
       - name: Download stable release assets
         env:
-          REPO: ${{ github.repository }}
+          GH_TOKEN: ${{ github.token }}
+          STABLE_TAG: v${{ needs.release-metadata.outputs.app_version }}
         run: |
           set -euo pipefail
-          stable_version="${STABLE_TAG#v}"
-          mkdir -p dist-stable
-          curl -fsSL \
-            "https://github.com/${REPO}/releases/download/${STABLE_TAG}/AudioVideoMerger-darwin-arm64-${stable_version}.dmg" \
-            -o "dist-stable/AudioVideoMerger-darwin-arm64-${stable_version}.dmg"
-          curl -fsSL \
-            "https://github.com/${REPO}/releases/download/${STABLE_TAG}/AudioVideoMerger-darwin-x86_64-${stable_version}.dmg" \
-            -o "dist-stable/AudioVideoMerger-darwin-x86_64-${stable_version}.dmg"
+          gh release download "${STABLE_TAG}" \
+            --dir dist-stable \
+            --pattern 'AudioVideoMerger-darwin-arm64-*.dmg' \
+            --pattern 'AudioVideoMerger-darwin-arm64-*.zip' \
+            --pattern 'AudioVideoMerger-darwin-x86_64-*.dmg' \
+            --pattern 'AudioVideoMerger-darwin-x86_64-*.zip' \
+            --pattern 'AudioVideoMerger-darwin-x64-*.dmg' \
+            --pattern 'AudioVideoMerger-darwin-x64-*.zip'
 
       - name: Generate stable appcast entries
         env:
           REPO: ${{ github.repository }}
+          STABLE_TAG: v${{ needs.release-metadata.outputs.app_version }}
         run: |
           set -euo pipefail
           swift package resolve
@@ -104,18 +88,18 @@ jobs:
 
       - name: Download current release assets for beta channel
         env:
-          REPO: ${{ github.repository }}
+          GH_TOKEN: ${{ github.token }}
           RELEASE_TAG: ${{ github.ref_name }}
         run: |
           set -euo pipefail
-          release_version="${RELEASE_TAG#v}"
-          mkdir -p dist-beta
-          curl -fsSL \
-            "https://github.com/${REPO}/releases/download/${RELEASE_TAG}/AudioVideoMerger-darwin-arm64-${release_version}.dmg" \
-            -o "dist-beta/AudioVideoMerger-darwin-arm64-${release_version}.dmg"
-          curl -fsSL \
-            "https://github.com/${REPO}/releases/download/${RELEASE_TAG}/AudioVideoMerger-darwin-x86_64-${release_version}.dmg" \
-            -o "dist-beta/AudioVideoMerger-darwin-x86_64-${release_version}.dmg"
+          gh release download "${RELEASE_TAG}" \
+            --dir dist-beta \
+            --pattern 'AudioVideoMerger-darwin-arm64-*.dmg' \
+            --pattern 'AudioVideoMerger-darwin-arm64-*.zip' \
+            --pattern 'AudioVideoMerger-darwin-x86_64-*.dmg' \
+            --pattern 'AudioVideoMerger-darwin-x86_64-*.zip' \
+            --pattern 'AudioVideoMerger-darwin-x64-*.dmg' \
+            --pattern 'AudioVideoMerger-darwin-x64-*.zip'
 
       - name: Generate beta appcast entries
         env:
