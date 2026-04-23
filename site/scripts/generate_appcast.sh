@@ -6,10 +6,11 @@ INPUT_DIR="${1:-}"
 OUTPUT_DIR="${2:-./site/static}"
 RELEASE_TAG="${3:-}"
 REPO="${4:-${GITHUB_REPOSITORY:-}}"
+RELEASE_CHANNEL="${5:-}"
 
 if [[ -z "${INPUT_DIR}" || -z "${RELEASE_TAG}" || -z "${REPO}" ]]; then
   echo "Missing required argument(s)" >&2
-  echo "Usage: ./site/scripts/generate_appcast.sh <input-dir> <output-dir> <release-tag> <repo>" >&2
+  echo "Usage: ./site/scripts/generate_appcast.sh <input-dir> <output-dir> <release-tag> <repo> [channel]" >&2
   exit 1
 fi
 
@@ -25,11 +26,6 @@ SPARKLE_GENERATE_APPCAST="${REPO_ROOT}/.build/artifacts/sparkle/Sparkle/bin/gene
 if [[ ! -x "${SPARKLE_GENERATE_APPCAST}" ]]; then
   echo "Sparkle generate_appcast not found at ${SPARKLE_GENERATE_APPCAST}" >&2
   exit 1
-fi
-
-IS_PRERELEASE=0
-if [[ "${RELEASE_TAG}" == *-* ]]; then
-  IS_PRERELEASE=1
 fi
 
 find_asset() {
@@ -58,10 +54,16 @@ generate_feed_for_arch() {
   local arch_label="$1"
   local pattern="$2"
   local output_file="$3"
+  local appcast_name
+  appcast_name="$(basename "${output_file}")"
 
   local arch_tmpdir="${TMPDIR_ROOT}/${arch_label}"
   rm -rf "${arch_tmpdir}"
   mkdir -p "${arch_tmpdir}"
+
+  if [[ -f "${output_file}" ]]; then
+    cp "${output_file}" "${arch_tmpdir}/${appcast_name}"
+  fi
 
   local asset_path
   if ! asset_path="$(find_asset "${pattern}")"; then
@@ -72,17 +74,19 @@ generate_feed_for_arch() {
   cp "${asset_path}" "${arch_tmpdir}/"
 
   local channel_args=()
-  if [[ "${IS_PRERELEASE}" -eq 1 ]]; then
-    channel_args=(--channel beta)
+  if [[ -n "${RELEASE_CHANNEL}" ]]; then
+    channel_args=(--channel "${RELEASE_CHANNEL}")
   fi
 
   "${SPARKLE_GENERATE_APPCAST}" \
     "${arch_tmpdir}" \
-    -o "${output_file}" \
+    -o "${appcast_name}" \
     --download-url-prefix "https://github.com/${REPO}/releases/download/${RELEASE_TAG}/" \
     --link "https://audiovideomerger.github.io" \
     --full-release-notes-url "https://github.com/${REPO}/releases" \
     "${channel_args[@]}"
+
+  cp "${arch_tmpdir}/${appcast_name}" "${output_file}"
 
   if [[ ! -f "${output_file}" ]]; then
     echo "Failed to produce ${output_file}" >&2

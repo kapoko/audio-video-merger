@@ -9,8 +9,12 @@ jobs:
   build:
     uses: ./.github/workflows/build.yml
 
+  release-metadata:
+    uses: ./.github/workflows/release-metadata.yml
+
   release:
-    needs: build
+    needs:
+      - build
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -42,7 +46,8 @@ jobs:
           files: dist/*.dmg
 
   appcast:
-    needs: build
+    needs:
+      - build
     runs-on: macos-latest
 
     steps:
@@ -67,10 +72,11 @@ jobs:
         env:
           RELEASE_TAG: ${{ github.ref_name }}
           REPO: ${{ github.repository }}
+          RELEASE_CHANNEL: ${{ contains(github.ref_name, '-') && 'beta' || '' }}
         run: |
           set -euo pipefail
           swift package resolve
-          ./site/scripts/generate_appcast.sh ./dist ./site/static "${RELEASE_TAG}" "${REPO}"
+          ./site/scripts/generate_appcast.sh ./dist ./site/static "${RELEASE_TAG}" "${REPO}" "${RELEASE_CHANNEL}"
 
       - name: Upload appcast artifact
         uses: actions/upload-artifact@v7
@@ -85,8 +91,9 @@ jobs:
     needs:
       - release
       - appcast
+      - release-metadata
     uses: ./.github/workflows/site.yml
     with:
       include_appcast: true
-      release_tag: ${{ github.ref_name }}
+      app_version: ${{ needs.release-metadata.outputs.app_version }}
     secrets: inherit
