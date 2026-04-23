@@ -16,6 +16,18 @@ jobs:
       contents: write
 
     steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Validate tag matches VERSION
+        run: |
+          set -euo pipefail
+          expected_tag="v$(tr -d '[:space:]' < VERSION)"
+          if [ "${GITHUB_REF_NAME}" != "${expected_tag}" ]; then
+            echo "Tag ${GITHUB_REF_NAME} does not match VERSION (${expected_tag})"
+            exit 1
+          fi
+
       - name: Download build artifacts
         uses: actions/download-artifact@v8
         with:
@@ -29,7 +41,52 @@ jobs:
           prerelease: ${{ contains(github.ref_name, 'beta') }}
           files: dist/*.dmg
 
+  appcast:
+    needs: build
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v8
+        with:
+          pattern: dmg-*
+          path: dist
+          merge-multiple: true
+
+      - name: Seed existing appcasts
+        run: |
+          set -euo pipefail
+          mkdir -p site/static
+          curl -fsSL "https://audiovideomerger.github.io/appcast-arm64.xml" -o site/static/appcast-arm64.xml || true
+          curl -fsSL "https://audiovideomerger.github.io/appcast-x86_64.xml" -o site/static/appcast-x86_64.xml || true
+
+      - name: Generate Sparkle appcast
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          swift package resolve
+          ./site/scripts/generate_appcast.sh ./dist ./site/static "${RELEASE_TAG}" "${REPO}"
+
+      - name: Upload appcast artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: appcast-files
+          path: |
+            site/static/appcast-arm64.xml
+            site/static/appcast-x86_64.xml
+          if-no-files-found: error
+
   site:
-    needs: release
+    needs:
+      - release
+      - appcast
     uses: ./.github/workflows/site.yml
+    with:
+      include_appcast: true
+      release_tag: ${{ github.ref_name }}
     secrets: inherit

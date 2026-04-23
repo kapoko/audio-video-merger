@@ -64,10 +64,31 @@ bundle-x86_64 bundle-arm64: bundle-%: build-% setup
 	@echo "Creating $* app bundle..."
 	@mkdir -p "$(APP_BUNDLE_DIR)"
 	@app_bundle="$(APP_BUNDLE_DIR)/Audio Video Merger-$*.app"; \
+		app_executable="$$app_bundle/Contents/MacOS/$(EXECUTABLE)"; \
 		rm -rf "$$app_bundle"; \
 		mkdir -p "$$app_bundle/Contents/MacOS"; \
 		mkdir -p "$$app_bundle/Contents/Resources"; \
-		cp ".build/$*-apple-macosx/release/$(EXECUTABLE)" "$$app_bundle/Contents/MacOS/"; \
+		mkdir -p "$$app_bundle/Contents/Frameworks"; \
+		cp ".build/$*-apple-macosx/release/$(EXECUTABLE)" "$$app_executable"; \
+		if ! otool -l "$$app_executable" | grep -q "@executable_path/../Frameworks"; then \
+			install_name_tool -add_rpath "@executable_path/../Frameworks" "$$app_executable"; \
+		fi; \
+		sparkle_framework=""; \
+		for candidate in \
+			".build/$*-apple-macosx/release/Sparkle.framework" \
+			".build/artifacts/sparkle/Sparkle/Sparkle.framework" \
+			".build/artifacts/sparkle/Sparkle/Sparkle.xcframework/macos-arm64_x86_64/Sparkle.framework" \
+			".build/artifacts/sparkle/Sparkle.framework"; do \
+			if [ -d "$$candidate" ]; then \
+				sparkle_framework="$$candidate"; \
+				break; \
+			fi; \
+		done; \
+		if [ -z "$$sparkle_framework" ]; then \
+			echo "Could not find Sparkle.framework in .build artifacts"; \
+			exit 1; \
+		fi; \
+		cp -R "$$sparkle_framework" "$$app_bundle/Contents/Frameworks/"; \
 		cp "Resources/ffmpeg-$*" "$$app_bundle/Contents/Resources/"; \
 		cp "Resources/AppIcon.icns" "$$app_bundle/Contents/Resources/"; \
 		cp "Info.plist" "$$app_bundle/Contents/"; \

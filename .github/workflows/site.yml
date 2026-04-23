@@ -2,6 +2,17 @@ name: Site
 
 on:
   workflow_call:
+    inputs:
+      include_appcast:
+        description: Include generated appcast files
+        required: false
+        type: boolean
+        default: false
+      release_tag:
+        description: Release tag for version display
+        required: false
+        type: string
+        default: ""
   push:
     branches:
       - main
@@ -28,22 +39,33 @@ jobs:
         with:
           hugo-version: 'latest'
 
-      - name: Resolve latest stable release version
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
+      - name: Download appcast artifact
+        if: ${{ inputs.include_appcast }}
+        uses: actions/download-artifact@v8
+        with:
+          name: appcast-files
+          path: artifacts/appcast
+
+      - name: Copy generated appcast files
+        if: ${{ inputs.include_appcast }}
         run: |
           set -euo pipefail
-          stable_tag="$(curl -fsSL \
-            -H "Accept: application/vnd.github+json" \
-            -H "Authorization: Bearer $GITHUB_TOKEN" \
-            "https://api.github.com/repos/kapoko/audio-video-merger/releases?per_page=50" \
-            | jq -r 'map(select(.draft == false and .prerelease == false)) | first | .tag_name // empty')"
+          cp ../artifacts/appcast/appcast-arm64.xml static/appcast-arm64.xml
+          cp ../artifacts/appcast/appcast-x86_64.xml static/appcast-x86_64.xml
 
-          test -n "$stable_tag"
-          stable_version="${stable_tag#v}"
-          test -n "$stable_version"
+      - name: Set app version
+        env:
+          RELEASE_TAG: ${{ inputs.release_tag }}
+        run: |
+          set -euo pipefail
+          if [ -n "${RELEASE_TAG}" ]; then
+            app_version="${RELEASE_TAG#v}"
+          else
+            app_version="$(tr -d '[:space:]' < ../VERSION)"
+          fi
 
-          printf 'HUGO_APP_VERSION=%s\n' "$stable_version" >> "$GITHUB_ENV"
+          test -n "${app_version}"
+          printf 'HUGO_APP_VERSION=%s\n' "${app_version}" >> "$GITHUB_ENV"
 
       - name: Install dependencies
         run: npm install
@@ -77,9 +99,18 @@ jobs:
           path: public
 
       - name: Replace published files
+        env:
+          INCLUDE_APPCAST: ${{ inputs.include_appcast }}
         run: |
-          rm -rf target-repo/*
-          cp -R public/. target-repo/
+          set -euo pipefail
+          if [ "${INCLUDE_APPCAST}" = "true" ]; then
+            rsync -a --delete public/ target-repo/
+          else
+            rsync -a --delete \
+              --exclude 'appcast-arm64.xml' \
+              --exclude 'appcast-x86_64.xml' \
+              public/ target-repo/
+          fi
 
       - name: Commit and push
         working-directory: ./target-repo

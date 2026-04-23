@@ -13,6 +13,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate,
     NSApp.setActivationPolicy(.regular)
     NSApp.activate(ignoringOtherApps: true)
 
+    UpdateCoordinator.shared.initializeUpdater()
+
     if (Bundle.main.object(forInfoDictionaryKey: "CFBundlePackageType") as? String) == "APPL" {
       configureNotifications()
     }
@@ -23,6 +25,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate,
     if !startupPaths.isEmpty {
       enqueueOpenedFiles(startupPaths)
     }
+
+    UpdateCoordinator.shared.performStartupCheckIfNeeded()
   }
 
   nonisolated func userNotificationCenter(
@@ -137,10 +141,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate,
 @main
 struct AudioVideoMergerApp: App {
   @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
+  @StateObject private var updateCoordinator = UpdateCoordinator.shared
 
   var body: some Scene {
     Settings {
-      EmptyView()
+      UpdatesSettingsView(updateCoordinator: updateCoordinator)
+    }
+    .commands {
+      CommandGroup(after: .appInfo) {
+        Button("Check for Updates...") {
+          UpdateCoordinator.shared.checkForUpdates()
+        }
+      }
     }
   }
 }

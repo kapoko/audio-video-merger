@@ -1,6 +1,9 @@
 dist/
 data/
 node_modules/
+.cache/
 public/
 resources/_gen
 assets/jsconfig.json
+static/appcast-arm64.xml
+static/appcast-x86_64.xml

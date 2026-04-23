@@ -5,3 +5,4 @@ Resources/*ffmpeg*
 *.mp4
 *.app
 dist/
+Package.resolved
