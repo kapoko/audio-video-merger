@@ -65,49 +65,47 @@ jobs:
       - name: Download stable release assets
         env:
           GH_TOKEN: ${{ github.token }}
-          STABLE_TAG: v${{ needs.release-metadata.outputs.app_version }}
+          STABLE_TAG: ${{ needs.release-metadata.outputs.stable_tag }}
         run: |
           set -euo pipefail
+          mkdir -p dist-appcast
           gh release download "${STABLE_TAG}" \
-            --dir dist-stable \
+            --dir dist-appcast \
             --pattern 'AudioVideoMerger-darwin-arm64-*.dmg' \
             --pattern 'AudioVideoMerger-darwin-arm64-*.zip' \
             --pattern 'AudioVideoMerger-darwin-x86_64-*.dmg' \
-            --pattern 'AudioVideoMerger-darwin-x86_64-*.zip' \
-            --pattern 'AudioVideoMerger-darwin-x64-*.dmg' \
             --pattern 'AudioVideoMerger-darwin-x64-*.zip'
 
       - name: Generate stable appcast entries
         env:
           REPO: ${{ github.repository }}
-          STABLE_TAG: v${{ needs.release-metadata.outputs.app_version }}
+          STABLE_TAG: ${{ needs.release-metadata.outputs.stable_tag }}
         run: |
           set -euo pipefail
           swift package resolve
-          ./site/scripts/generate_appcast.sh ./dist-stable ./site/static "${STABLE_TAG}" "${REPO}"
+          ./site/scripts/generate_appcast.sh ./dist-appcast ./site/static "${STABLE_TAG}" "${REPO}"
 
-      - name: Download current release assets for beta channel
+      - name: Download release assets for beta channel
+        if: contains(github.ref_name, 'beta')
         env:
           GH_TOKEN: ${{ github.token }}
           RELEASE_TAG: ${{ github.ref_name }}
         run: |
           set -euo pipefail
           gh release download "${RELEASE_TAG}" \
-            --dir dist-beta \
+            --dir dist-appcast \
             --pattern 'AudioVideoMerger-darwin-arm64-*.dmg' \
             --pattern 'AudioVideoMerger-darwin-arm64-*.zip' \
             --pattern 'AudioVideoMerger-darwin-x86_64-*.dmg' \
-            --pattern 'AudioVideoMerger-darwin-x86_64-*.zip' \
-            --pattern 'AudioVideoMerger-darwin-x64-*.dmg' \
             --pattern 'AudioVideoMerger-darwin-x64-*.zip'
 
       - name: Generate beta appcast entries
         env:
-          RELEASE_TAG: ${{ github.ref_name }}
+          RELEASE_TAG: ${{ contains(github.ref_name, 'beta') && github.ref_name || needs.release-metadata.outputs.stable_tag }}
           REPO: ${{ github.repository }}
         run: |
           set -euo pipefail
-          ./site/scripts/generate_appcast.sh ./dist-beta ./site/static "${RELEASE_TAG}" "${REPO}" "beta"
+          ./site/scripts/generate_appcast.sh ./dist-appcast ./site/static "${RELEASE_TAG}" "${REPO}" "beta"
 
       - name: Upload appcast artifact
         uses: actions/upload-artifact@v7

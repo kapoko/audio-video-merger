@@ -7,6 +7,8 @@ OUTPUT_DIR="${2:-./site/static}"
 RELEASE_TAG="${3:-}"
 REPO="${4:-${GITHUB_REPOSITORY:-}}"
 RELEASE_CHANNEL="${5:-}"
+RELEASE_VERSION="${RELEASE_TAG#v}"
+RELEASE_BUILD_VERSION="$(printf '%s' "${RELEASE_VERSION}" | sed -E 's/-beta\.([0-9]+)$/b\1/; s/-.*$//')"
 
 if [[ -z "${INPUT_DIR}" || -z "${RELEASE_TAG}" || -z "${REPO}" ]]; then
   echo "Missing required argument(s)" >&2
@@ -28,26 +30,17 @@ if [[ ! -x "${SPARKLE_GENERATE_APPCAST}" ]]; then
   exit 1
 fi
 
-find_asset() {
+collect_assets() {
   local pattern="$1"
   local file_name
-  local asset=""
 
   shopt -s nullglob
   for file_name in "${INPUT_DIR}"/*; do
     if [[ -f "${file_name}" && "$(basename "${file_name}")" =~ ${pattern} ]]; then
-      asset="${file_name}"
-      break
+      printf '%s\n' "${file_name}"
     fi
   done
   shopt -u nullglob
-
-  if [[ -n "${asset}" ]]; then
-    printf '%s\n' "${asset}"
-    return 0
-  fi
-
-  return 1
 }
 
 generate_feed_for_arch() {
@@ -56,22 +49,76 @@ generate_feed_for_arch() {
   local output_file="$3"
   local appcast_name
   appcast_name="$(basename "${output_file}")"
+  local appcast_path
 
   local arch_tmpdir="${TMPDIR_ROOT}/${arch_label}"
+  appcast_path="${arch_tmpdir}/${appcast_name}"
   rm -rf "${arch_tmpdir}"
   mkdir -p "${arch_tmpdir}"
 
   if [[ -f "${output_file}" ]]; then
-    cp "${output_file}" "${arch_tmpdir}/${appcast_name}"
+    cp "${output_file}" "${appcast_path}"
   fi
 
   local asset_path
-  if ! asset_path="$(find_asset "${pattern}")"; then
-    echo "Missing ${arch_label} release asset in ${INPUT_DIR}" >&2
+  local -a arch_assets=()
+  while IFS= read -r asset_path; do
+    arch_assets+=("${asset_path}")
+  done < <(collect_assets "${pattern}")
+
+  local -a selected_assets=()
+  local -a selected_versions=()
+  local asset_name
+  local asset_version
+  local selected_index
+  local i
+
+  for asset_path in "${arch_assets[@]}"; do
+    asset_name="$(basename "${asset_path}")"
+
+    if [[ "${asset_name}" != *"-${RELEASE_VERSION}."* ]]; then
+      continue
+    fi
+
+    if [[ "${asset_name}" =~ ^AudioVideoMerger-darwin-(arm64|x86_64|x64)-(.+)\.(dmg|zip)$ ]]; then
+      asset_version="${BASH_REMATCH[2]}"
+      selected_index=""
+
+      for i in "${!selected_versions[@]}"; do
+        if [[ "${selected_versions[$i]}" == "${asset_version}" ]]; then
+          selected_index="${i}"
+          break
+        fi
+      done
+
+      if [[ -z "${selected_index}" ]]; then
+        selected_versions+=("${asset_version}")
+        selected_assets+=("${asset_path}")
+      elif [[ "${selected_assets[$selected_index]}" == *.zip && "${asset_path}" == *.dmg ]]; then
+        selected_assets[$selected_index]="${asset_path}"
+      fi
+    else
+      selected_assets+=("${asset_path}")
+    fi
+  done
+
+  if [[ "${#selected_assets[@]}" -eq 0 ]]; then
+    echo "Missing ${arch_label} assets in ${INPUT_DIR}" >&2
     exit 1
   fi
 
-  cp "${asset_path}" "${arch_tmpdir}/"
+  local matched_release_asset=false
+  for asset_path in "${selected_assets[@]}"; do
+    if [[ "$(basename "${asset_path}")" == *"-${RELEASE_VERSION}."* ]]; then
+      matched_release_asset=true
+    fi
+    cp "${asset_path}" "${arch_tmpdir}/"
+  done
+
+  if [[ "${matched_release_asset}" != "true" ]]; then
+    echo "Missing ${arch_label} release asset for ${RELEASE_VERSION} in ${INPUT_DIR}" >&2
+    exit 1
+  fi
 
   local channel_args=()
   if [[ -n "${RELEASE_CHANNEL}" ]]; then
@@ -80,13 +127,16 @@ generate_feed_for_arch() {
 
   "${SPARKLE_GENERATE_APPCAST}" \
     "${arch_tmpdir}" \
-    -o "${appcast_name}" \
+    -o "${appcast_path}" \
+    --disable-nested-code-check \
+    --maximum-versions 1 \
+    --versions "${RELEASE_BUILD_VERSION}" \
     --download-url-prefix "https://github.com/${REPO}/releases/download/${RELEASE_TAG}/" \
     --link "https://audiovideomerger.github.io" \
     --full-release-notes-url "https://github.com/${REPO}/releases" \
     "${channel_args[@]}"
 
-  cp "${arch_tmpdir}/${appcast_name}" "${output_file}"
+  cp "${appcast_path}" "${output_file}"
 
   if [[ ! -f "${output_file}" ]]; then
     echo "Failed to produce ${output_file}" >&2
