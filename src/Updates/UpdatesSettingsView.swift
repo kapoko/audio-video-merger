@@ -35,12 +35,6 @@ struct UpdatesSettingsView: View {
         )
         .disabled(
           !updateCoordinator.isAvailable || !updateCoordinator.automaticallyChecksForUpdates)
-
-        SettingsToggleRow(
-          icon: "flask",
-          title: "Get beta updates",
-          isOn: betaUpdatesBinding
-        ).disabled(!updateCoordinator.isAvailable)
       }
 
     }
@@ -52,13 +46,6 @@ struct UpdatesSettingsView: View {
     Binding(
       get: { updateCoordinator.automaticallyChecksForUpdates },
       set: { updateCoordinator.automaticallyChecksForUpdates = $0 }
-    )
-  }
-
-  private var betaUpdatesBinding: Binding<Bool> {
-    Binding(
-      get: { updateCoordinator.betaUpdatesEnabled },
-      set: { updateCoordinator.betaUpdatesEnabled = $0 }
     )
   }
 

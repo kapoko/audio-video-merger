@@ -25,17 +25,6 @@ final class UpdateCoordinator: NSObject, ObservableObject {
     }
   }
 
-  @Published var betaUpdatesEnabled: Bool {
-    didSet {
-      guard betaUpdatesEnabled != oldValue else {
-        return
-      }
-
-      defaults.set(betaUpdatesEnabled, forKey: UpdateSettings.betaUpdatesEnabledDefaultsKey)
-      updaterController?.updater.resetUpdateCycleAfterShortDelay()
-    }
-  }
-
   @Published var automaticallyDownloadsUpdates: Bool = false {
     didSet {
       guard automaticallyDownloadsUpdates != oldValue else {
@@ -61,9 +50,12 @@ final class UpdateCoordinator: NSObject, ObservableObject {
 
   private override init() {
     defaults = .standard
-    betaUpdatesEnabled = defaults.bool(forKey: UpdateSettings.betaUpdatesEnabledDefaultsKey)
     lastCheckedAt = defaults.object(forKey: UpdateSettings.lastCheckedAtDefaultsKey) as? Date
     super.init()
+  }
+
+  private var betaUpdatesEnabled: Bool {
+    defaults.bool(forKey: UpdateSettings.betaUpdatesEnabledDefaultsKey)
   }
 
   var statusText: String {

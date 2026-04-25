@@ -66,7 +66,7 @@ Build outputs are written to `dist/` (`dist/apps/*.app` and release DMGs in `dis
 
 ## Platform and requirements
 
-- macOS 13 or later
+- macOS 13 (Ventura) or later
 
 ## Development tooling
 
@@ -78,6 +78,15 @@ lefthook install
 
 swift format lint -r src
 swift build
+```
+
+### Beta update channel
+
+Hidden beta update channel
+
+```bash
+defaults write com.kapoko.audiovideomerger updates.beta.enabled -bool true
+defaults write com.kapoko.audiovideomerger updates.beta.enabled -bool false
 ```
 
 ## Project history
