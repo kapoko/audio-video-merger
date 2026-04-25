@@ -14,7 +14,7 @@ struct UpdatesSettingsView: View {
       Toggle("Get beta updates", isOn: betaUpdatesBinding)
         .disabled(!updateCoordinator.isAvailable)
 
-      Text(updateCoordinator.state.statusText)
+      Text(updateCoordinator.statusText)
         .font(.system(size: 13, weight: .regular, design: .rounded))
         .foregroundColor(.secondary)
 

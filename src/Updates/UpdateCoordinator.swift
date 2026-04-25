@@ -6,44 +6,63 @@ final class UpdateCoordinator: NSObject, ObservableObject {
   static let shared = UpdateCoordinator()
 
   @Published private(set) var state: UpdateState = .idle
+  @Published private(set) var lastCheckedAt: Date?
+  @Published var automaticallyChecksForUpdates: Bool = true {
+    didSet {
+      guard automaticallyChecksForUpdates != oldValue else {
+        return
+      }
 
-  private var updaterController: SPUStandardUpdaterController?
-  private let defaults: UserDefaults
-
-  private override init() {
-    defaults = .standard
-    super.init()
-  }
-
-  var isAvailable: Bool {
-    updaterController != nil
-  }
-
-  var automaticallyChecksForUpdates: Bool {
-    get {
-      updaterController?.updater.automaticallyChecksForUpdates ?? true
-    }
-    set {
       guard let updater = updaterController?.updater else {
         return
       }
 
-      updater.automaticallyChecksForUpdates = newValue
+      updater.automaticallyChecksForUpdates = automaticallyChecksForUpdates
 
-      if !newValue {
+      if !automaticallyChecksForUpdates {
         state = .idle
       }
     }
   }
 
-  var betaUpdatesEnabled: Bool {
-    get {
-      defaults.bool(forKey: UpdateSettings.betaUpdatesEnabledDefaultsKey)
-    }
-    set {
-      defaults.set(newValue, forKey: UpdateSettings.betaUpdatesEnabledDefaultsKey)
+  @Published var betaUpdatesEnabled: Bool {
+    didSet {
+      guard betaUpdatesEnabled != oldValue else {
+        return
+      }
+
+      defaults.set(betaUpdatesEnabled, forKey: UpdateSettings.betaUpdatesEnabledDefaultsKey)
       updaterController?.updater.resetUpdateCycleAfterShortDelay()
     }
+  }
+
+  private var updaterController: SPUStandardUpdaterController?
+  private let defaults: UserDefaults
+  private static let lastCheckedDateFormatter: DateFormatter = {
+    let formatter = DateFormatter()
+    formatter.dateStyle = .medium
+    formatter.timeStyle = .short
+    return formatter
+  }()
+
+  private override init() {
+    defaults = .standard
+    betaUpdatesEnabled = defaults.bool(forKey: UpdateSettings.betaUpdatesEnabledDefaultsKey)
+    lastCheckedAt = defaults.object(forKey: UpdateSettings.lastCheckedAtDefaultsKey) as? Date
+    super.init()
+  }
+
+  var statusText: String {
+    let baseStatus = state.statusText
+    guard let lastCheckedAt else {
+      return baseStatus
+    }
+
+    return "\(baseStatus) • Last checked \(Self.lastCheckedDateFormatter.string(from: lastCheckedAt))"
+  }
+
+  var isAvailable: Bool {
+    updaterController != nil
   }
 
   func initializeUpdater() {
@@ -71,6 +90,7 @@ final class UpdateCoordinator: NSObject, ObservableObject {
     _ = controller.updater.clearFeedURLFromUserDefaults()
 
     updaterController = controller
+    automaticallyChecksForUpdates = controller.updater.automaticallyChecksForUpdates
     state = .idle
   }
 
@@ -118,9 +138,20 @@ final class UpdateCoordinator: NSObject, ObservableObject {
 
     return nil
   }
+
+  private func markLastCheckedNow() {
+    let timestamp = Date()
+    lastCheckedAt = timestamp
+    defaults.set(timestamp, forKey: UpdateSettings.lastCheckedAtDefaultsKey)
+  }
 }
 
 extension UpdateCoordinator: SPUUpdaterDelegate {
+  private func isNoUpdateError(_ error: Error) -> Bool {
+    let nsError = error as NSError
+    return nsError.domain == SUSparkleErrorDomain && nsError.code == Int(SUError.noUpdateError.rawValue)
+  }
+
   func feedURLString(for updater: SPUUpdater) -> String? {
     #if arch(arm64)
       return "https://audiovideomerger.github.io/appcast-arm64.xml"
@@ -139,14 +170,17 @@ extension UpdateCoordinator: SPUUpdaterDelegate {
 
   func updater(_ updater: SPUUpdater, didFindValidUpdate item: SUAppcastItem) {
     state = .updateAvailable(version: item.displayVersionString)
+    markLastCheckedNow()
   }
 
   func updaterDidNotFindUpdate(_ updater: SPUUpdater) {
     state = .upToDate
+    markLastCheckedNow()
   }
 
   func updaterDidNotFindUpdate(_ updater: SPUUpdater, error: Error) {
     state = .upToDate
+    markLastCheckedNow()
   }
 
   func updater(
@@ -166,7 +200,14 @@ extension UpdateCoordinator: SPUUpdaterDelegate {
   }
 
   func updater(_ updater: SPUUpdater, didAbortWithError error: Error) {
+    if isNoUpdateError(error) {
+      state = .upToDate
+      markLastCheckedNow()
+      return
+    }
+
     state = .failed(message: error.localizedDescription)
+    markLastCheckedNow()
   }
 
   func updater(
@@ -175,12 +216,20 @@ extension UpdateCoordinator: SPUUpdaterDelegate {
     error: Error?
   ) {
     if let error {
+      if isNoUpdateError(error) {
+        state = .upToDate
+        markLastCheckedNow()
+        return
+      }
+
       state = .failed(message: error.localizedDescription)
+      markLastCheckedNow()
       return
     }
 
     if case .checking = state {
       state = .upToDate
+      markLastCheckedNow()
     }
   }
 }
