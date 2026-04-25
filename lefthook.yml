@@ -2,7 +2,7 @@ pre-commit:
   parallel: true
   commands:
     swift-format:
-      run: swift format lint -r src
+      run: swift format lint -r src --strict
 
 pre-push:
   commands:

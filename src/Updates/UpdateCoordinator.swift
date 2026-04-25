@@ -58,7 +58,8 @@ final class UpdateCoordinator: NSObject, ObservableObject {
       return baseStatus
     }
 
-    return "\(baseStatus) • Last checked \(Self.lastCheckedDateFormatter.string(from: lastCheckedAt))"
+    return
+      "\(baseStatus) • Last checked \(Self.lastCheckedDateFormatter.string(from: lastCheckedAt))"
   }
 
   var isAvailable: Bool {
@@ -149,7 +150,8 @@ final class UpdateCoordinator: NSObject, ObservableObject {
 extension UpdateCoordinator: SPUUpdaterDelegate {
   private func isNoUpdateError(_ error: Error) -> Bool {
     let nsError = error as NSError
-    return nsError.domain == SUSparkleErrorDomain && nsError.code == Int(SUError.noUpdateError.rawValue)
+    return nsError.domain == SUSparkleErrorDomain
+      && nsError.code == Int(SUError.noUpdateError.rawValue)
   }
 
   func feedURLString(for updater: SPUUpdater) -> String? {
