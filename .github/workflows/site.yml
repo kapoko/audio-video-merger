@@ -92,6 +92,8 @@ jobs:
           else
             rsync -a --delete \
               --exclude '.git/' \
+              --exclude 'appcast-arm64.xml' \
+              --exclude 'appcast-x86_64.xml' \
               public/ target-repo/
           fi
 
