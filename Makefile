@@ -65,6 +65,7 @@ bundle-x86_64 bundle-arm64: bundle-%: build-% setup
 	@mkdir -p "$(APP_BUNDLE_DIR)"
 	@app_bundle="$(APP_BUNDLE_DIR)/Audio Video Merger-$*.app"; \
 		app_executable="$$app_bundle/Contents/MacOS/$(EXECUTABLE)"; \
+		appcast_url="https://audiovideomerger.github.io/appcast-$*.xml"; \
 		rm -rf "$$app_bundle"; \
 		mkdir -p "$$app_bundle/Contents/MacOS"; \
 		mkdir -p "$$app_bundle/Contents/Resources"; \
@@ -94,6 +95,7 @@ bundle-x86_64 bundle-arm64: bundle-%: build-% setup
 		cp "Info.plist" "$$app_bundle/Contents/"; \
 		/usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString $(APP_VERSION)" "$$app_bundle/Contents/Info.plist"; \
 		/usr/libexec/PlistBuddy -c "Set :CFBundleVersion $(APP_BUILD_VERSION)" "$$app_bundle/Contents/Info.plist"; \
+		/usr/libexec/PlistBuddy -c "Set :SUFeedURL $$appcast_url" "$$app_bundle/Contents/Info.plist"; \
 		codesign --force --deep --sign - "$$app_bundle"; \
 		echo "App bundle created: $$app_bundle"
 

@@ -30,7 +30,7 @@
     <key>NSPrincipalClass</key>
     <string>NSApplication</string>
     <key>SUFeedURL</key>
-    <string>https://audiovideomerger.github.io/appcast-arm64.xml</string>
+    <string>__APPCAST_URL__</string>
     <key>SUEnableAutomaticChecks</key>
     <true/>
     <key>SUAutomaticallyUpdate</key>
