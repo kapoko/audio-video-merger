@@ -9,9 +9,6 @@ jobs:
   build:
     uses: ./.github/workflows/build.yml
 
-  release-metadata:
-    uses: ./.github/workflows/release-metadata.yml
-
   release:
     needs:
       - build
@@ -21,6 +18,7 @@ jobs:
 
     steps:
       - name: Checkout
+        if: ${{ !env.ACT }}
         uses: actions/checkout@v6
 
       - name: Validate tag matches VERSION
@@ -48,81 +46,75 @@ jobs:
   appcast:
     needs:
       - release
-      - release-metadata
     runs-on: macos-latest
 
     steps:
       - name: Checkout
         uses: actions/checkout@v6
 
+      - name: Download build artifacts
+        uses: actions/download-artifact@v8
+        with:
+          pattern: dmg-*
+          path: dist-appcast
+
       - name: Seed existing appcasts
         run: |
           set -euo pipefail
-          mkdir -p site/static
-          curl -fsSL "https://audiovideomerger.github.io/appcast-arm64.xml" -o site/static/appcast-arm64.xml || true
-          curl -fsSL "https://audiovideomerger.github.io/appcast-x86_64.xml" -o site/static/appcast-x86_64.xml || true
+          mkdir -p dist-appcast/dmg-arm64 dist-appcast/dmg-x86_64
+          curl -fsSL "https://audiovideomerger.github.io/appcast-arm64.xml" -o dist-appcast/dmg-arm64/appcast-arm64.xml || true
+          curl -fsSL "https://audiovideomerger.github.io/appcast-x86_64.xml" -o dist-appcast/dmg-x86_64/appcast-x86_64.xml || true
 
-      - name: Download stable release assets
-        env:
-          GH_TOKEN: ${{ github.token }}
-          STABLE_TAG: ${{ needs.release-metadata.outputs.stable_tag }}
-        run: |
-          set -euo pipefail
-          mkdir -p dist-appcast
-          gh release download "${STABLE_TAG}" \
-            --dir dist-appcast \
-            --pattern 'AudioVideoMerger-darwin-arm64-*.dmg' \
-            --pattern 'AudioVideoMerger-darwin-arm64-*.zip' \
-            --pattern 'AudioVideoMerger-darwin-x86_64-*.dmg' \
-            --pattern 'AudioVideoMerger-darwin-x64-*.zip'
-
-      - name: Generate stable appcast entries
-        env:
-          REPO: ${{ github.repository }}
-          STABLE_TAG: ${{ needs.release-metadata.outputs.stable_tag }}
+      - name: Resolve Sparkle generate_appcast
         run: |
           set -euo pipefail
           swift package resolve
-          ./site/scripts/generate_appcast.sh ./dist-appcast ./site/static "${STABLE_TAG}" "${REPO}"
+          test -x .build/artifacts/sparkle/Sparkle/bin/generate_appcast
 
-      - name: Download release assets for beta channel
-        if: contains(github.ref_name, 'beta')
+      - name: Generate appcasts
         env:
-          GH_TOKEN: ${{ github.token }}
           RELEASE_TAG: ${{ github.ref_name }}
-        run: |
-          set -euo pipefail
-          gh release download "${RELEASE_TAG}" \
-            --dir dist-appcast \
-            --pattern 'AudioVideoMerger-darwin-arm64-*.dmg' \
-            --pattern 'AudioVideoMerger-darwin-arm64-*.zip' \
-            --pattern 'AudioVideoMerger-darwin-x86_64-*.dmg' \
-            --pattern 'AudioVideoMerger-darwin-x64-*.zip'
-
-      - name: Generate beta appcast entries
-        env:
-          RELEASE_TAG: ${{ contains(github.ref_name, 'beta') && github.ref_name || needs.release-metadata.outputs.stable_tag }}
           REPO: ${{ github.repository }}
+          IS_BETA: ${{ contains(github.ref_name, 'beta') }}
         run: |
           set -euo pipefail
-          ./site/scripts/generate_appcast.sh ./dist-appcast ./site/static "${RELEASE_TAG}" "${REPO}" "beta"
+          release_version="${RELEASE_TAG#v}"
+          release_build_version="$(printf '%s' "${release_version}" | sed -E 's/-beta\.([0-9]+)$/b\1/; s/-.*$//')"
+          generate_for_arch() {
+            local arch_dir="$1"
+            local output_file="$2"
+            local -a channel_args=()
+            if [ "${IS_BETA}" = "true" ]; then
+              channel_args=(--channel beta)
+            fi
+
+            ./.build/artifacts/sparkle/Sparkle/bin/generate_appcast \
+              "${arch_dir}" \
+              -o "${output_file}" \
+              --disable-nested-code-check \
+              --maximum-versions 1 \
+              --versions "${release_build_version}" \
+              --download-url-prefix "https://github.com/${REPO}/releases/download/${RELEASE_TAG}/" \
+              --link "https://audiovideomerger.github.io" \
+              --full-release-notes-url "https://github.com/${REPO}/releases" \
+              "${channel_args[@]}"
+          }
+
+          generate_for_arch ./dist-appcast/dmg-arm64 ./dist-appcast/dmg-arm64/appcast-arm64.xml
+          generate_for_arch ./dist-appcast/dmg-x86_64 ./dist-appcast/dmg-x86_64/appcast-x86_64.xml
 
       - name: Upload appcast artifact
         uses: actions/upload-artifact@v7
         with:
           name: appcast-files
           path: |
-            site/static/appcast-arm64.xml
-            site/static/appcast-x86_64.xml
+            dist-appcast/dmg-arm64/appcast-arm64.xml
+            dist-appcast/dmg-x86_64/appcast-x86_64.xml
           if-no-files-found: error
 
   site:
     needs:
       - release
       - appcast
-      - release-metadata
     uses: ./.github/workflows/site.yml
-    with:
-      include_appcast: true
-      app_version: ${{ needs.release-metadata.outputs.app_version }}
     secrets: inherit

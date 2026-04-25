@@ -1,34 +1,18 @@
 name: Site
 
+env:
+  IS_RELEASE: ${{ github.ref_type == 'tag' && startsWith(github.ref_name, 'v') }}
+
 on:
   workflow_call:
-    inputs:
-      include_appcast:
-        description: Include generated appcast files
-        required: false
-        type: boolean
-        default: false
-      app_version:
-        description: App version for site download links
-        required: false
-        type: string
-        default: ""
   push:
     branches:
       - main
       - dev
 
 jobs:
-  release-metadata:
-    uses: ./.github/workflows/release-metadata.yml
-    with:
-      app_version_override: ${{ inputs.app_version }}
-
   build:
-    needs: release-metadata
     runs-on: ubuntu-latest
-    env:
-      HUGO_APP_VERSION: ${{ needs.release-metadata.outputs.app_version }}
     defaults:
       run:
         working-directory: ./site
@@ -48,14 +32,14 @@ jobs:
           hugo-version: 'latest'
 
       - name: Download appcast artifact
-        if: ${{ inputs.include_appcast }}
+        if: env.IS_RELEASE == 'true'
         uses: actions/download-artifact@v8
         with:
           name: appcast-files
           path: artifacts/appcast
 
-      - name: Copy generated appcast files
-        if: ${{ inputs.include_appcast }}
+      - name: Copy appcast files when available
+        if: env.IS_RELEASE == 'true'
         run: |
           set -euo pipefail
           cp ../artifacts/appcast/appcast-arm64.xml static/appcast-arm64.xml
@@ -65,7 +49,12 @@ jobs:
         run: npm install
 
       - name: Build
-        run: npm run build
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          latest_stable_tag="$(gh api "repos/${GITHUB_REPOSITORY}/releases/latest" --jq '.tag_name')"
+          HUGO_APP_VERSION="${latest_stable_tag#v}" npm run build
 
       - name: Upload site artifact
         uses: actions/upload-artifact@v7
@@ -96,11 +85,9 @@ jobs:
           path: public
 
       - name: Replace published files
-        env:
-          INCLUDE_APPCAST: ${{ inputs.include_appcast }}
         run: |
           set -euo pipefail
-          if [ "${INCLUDE_APPCAST}" = "true" ]; then
+          if [ "${IS_RELEASE}" = "true" ]; then
             rsync -a --delete --exclude '.git/' public/ target-repo/
           else
             rsync -a --delete \
