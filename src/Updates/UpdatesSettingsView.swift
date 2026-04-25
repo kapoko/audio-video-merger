@@ -4,35 +4,48 @@ struct UpdatesSettingsView: View {
   @ObservedObject var updateCoordinator: UpdateCoordinator
 
   var body: some View {
-    VStack(alignment: .leading, spacing: 12) {
-      Text("Updates")
-        .font(.system(size: 18, weight: .semibold, design: .rounded))
+    Form {
+      Section {
+        SettingsToggleRow(
+          icon: "arrow.triangle.2.circlepath",
+          title: "Automatically check for updates",
+          isOn: automaticallyChecksBinding
+        ).disabled(!updateCoordinator.isAvailable)
 
-      Toggle("Automatically check for updates", isOn: automaticallyChecksBinding)
-        .disabled(!updateCoordinator.isAvailable)
+        HStack {
+          Text(updateCoordinator.statusText)
+            .font(.caption)
+            .foregroundStyle(.secondary)
 
-      Toggle("Get beta updates", isOn: betaUpdatesBinding)
-        .disabled(!updateCoordinator.isAvailable)
+          Spacer()
 
-      Toggle("Automatically download and install updates", isOn: automaticallyDownloadsBinding)
+          Button("Check Now") {
+            updateCoordinator.checkForUpdates()
+          }
+          .disabled(!updateCoordinator.isAvailable)
+
+        }
+      }
+
+      Section {
+        SettingsToggleRow(
+          icon: "square.and.arrow.down",
+          title: "Automatically download and install updates",
+          isOn: automaticallyDownloadsBinding
+        )
         .disabled(
           !updateCoordinator.isAvailable || !updateCoordinator.automaticallyChecksForUpdates)
 
-      Text(updateCoordinator.statusText)
-        .font(.system(size: 13, weight: .regular, design: .rounded))
-        .foregroundColor(.secondary)
-
-      HStack {
-        Spacer()
-
-        Button("Check Now") {
-          updateCoordinator.checkForUpdates()
-        }
-        .disabled(!updateCoordinator.isAvailable)
+        SettingsToggleRow(
+          icon: "flask",
+          title: "Get beta updates",
+          isOn: betaUpdatesBinding
+        ).disabled(!updateCoordinator.isAvailable)
       }
+
     }
-    .padding(20)
-    .frame(width: 420)
+    .formStyle(.grouped)
+    .frame(width: 460)
   }
 
   private var automaticallyChecksBinding: Binding<Bool> {
@@ -54,5 +67,17 @@ struct UpdatesSettingsView: View {
       get: { updateCoordinator.automaticallyDownloadsUpdates },
       set: { updateCoordinator.automaticallyDownloadsUpdates = $0 }
     )
+  }
+}
+
+private struct SettingsToggleRow: View {
+  let icon: String
+  let title: String
+  @Binding var isOn: Bool
+
+  var body: some View {
+    Toggle(isOn: $isOn) {
+      Label(title, systemImage: icon)
+    }
   }
 }

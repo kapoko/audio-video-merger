@@ -28,9 +28,9 @@ This tool is built for fast audio versioning against existing video files. Inste
 
 Drop at least one video file and one audio file.
 
-- `1 video + many audio` -> output names use the audio filename (for example, `song1.mp4`, `song2.mp4`).
-- `many videos + 1 audio` -> output names use `video_audio` (for example, `clip1_music.mp4`).
-- `many videos + many audio` -> all combinations are created.
+- `1 video + multiple audio` -> output names use the audio filename (for example, `song1.mp4`, `song2.mp4`).
+- `multiple videos + audio` -> output names use `video_audio` (for example, `clip1_music.mp4`).
+- `multiple videos + multiple audio` -> all combinations are created.
 - Outputs are saved in the audio file directory.
 
 When an output file already exists, the app asks whether to overwrite.
@@ -62,14 +62,11 @@ Build outputs are written to `dist/` (`dist/apps/*.app` and release DMGs in `dis
 
 ## Notifications and app verification
 
-- Completion notifications are available when running as an app bundle (`.app`).
 - The app is ad-hoc signed (not notarized), so macOS may show a verification warning on first launch. If that happens, allow it from _System Settings_ -> _Privacy & Security_ -> _Open Anyway_.
 
 ## Platform and requirements
 
-- macOS 11 or later
-- Swift 5.7 or later
-- Internet connection for first-time FFmpeg download (`make ffmpeg` / `make setup`)
+- macOS 13 or later
 
 ## Development tooling
 

@@ -4,7 +4,7 @@ import PackageDescription
 let package = Package(
     name: "audio-video-merger",
     platforms: [
-        .macOS(.v11)
+        .macOS(.v13)
     ],
     products: [
         .executable(name: "AudioVideoMerger", targets: ["AudioVideoMerger"])
