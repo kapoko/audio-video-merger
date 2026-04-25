@@ -42,8 +42,8 @@ jobs:
         if: env.IS_RELEASE == 'true'
         run: |
           set -euo pipefail
-          cp ../artifacts/appcast/appcast-arm64.xml static/appcast-arm64.xml
-          cp ../artifacts/appcast/appcast-x86_64.xml static/appcast-x86_64.xml
+          cp ../artifacts/appcast/dmg-arm64/appcast-arm64.xml static/appcast-arm64.xml
+          cp ../artifacts/appcast/dmg-x86_64/appcast-x86_64.xml static/appcast-x86_64.xml
 
       - name: Install dependencies
         run: npm install
