@@ -14,6 +14,10 @@ struct UpdatesSettingsView: View {
       Toggle("Get beta updates", isOn: betaUpdatesBinding)
         .disabled(!updateCoordinator.isAvailable)
 
+      Toggle("Automatically download and install updates", isOn: automaticallyDownloadsBinding)
+        .disabled(
+          !updateCoordinator.isAvailable || !updateCoordinator.automaticallyChecksForUpdates)
+
       Text(updateCoordinator.statusText)
         .font(.system(size: 13, weight: .regular, design: .rounded))
         .foregroundColor(.secondary)
@@ -42,6 +46,13 @@ struct UpdatesSettingsView: View {
     Binding(
       get: { updateCoordinator.betaUpdatesEnabled },
       set: { updateCoordinator.betaUpdatesEnabled = $0 }
+    )
+  }
+
+  private var automaticallyDownloadsBinding: Binding<Bool> {
+    Binding(
+      get: { updateCoordinator.automaticallyDownloadsUpdates },
+      set: { updateCoordinator.automaticallyDownloadsUpdates = $0 }
     )
   }
 }

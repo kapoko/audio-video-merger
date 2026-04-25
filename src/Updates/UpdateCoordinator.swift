@@ -36,6 +36,20 @@ final class UpdateCoordinator: NSObject, ObservableObject {
     }
   }
 
+  @Published var automaticallyDownloadsUpdates: Bool = false {
+    didSet {
+      guard automaticallyDownloadsUpdates != oldValue else {
+        return
+      }
+
+      guard let updater = updaterController?.updater else {
+        return
+      }
+
+      updater.automaticallyDownloadsUpdates = automaticallyDownloadsUpdates
+    }
+  }
+
   private var updaterController: SPUStandardUpdaterController?
   private let defaults: UserDefaults
   private static let lastCheckedDateFormatter: DateFormatter = {
@@ -92,6 +106,7 @@ final class UpdateCoordinator: NSObject, ObservableObject {
 
     updaterController = controller
     automaticallyChecksForUpdates = controller.updater.automaticallyChecksForUpdates
+    automaticallyDownloadsUpdates = controller.updater.automaticallyDownloadsUpdates
     state = .idle
   }
 
