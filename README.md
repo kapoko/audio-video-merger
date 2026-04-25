@@ -82,11 +82,11 @@ swift build
 
 ### Beta update channel
 
-Hidden beta update channel
+Enable beta updates. Used for testing releases.
 
 ```bash
 defaults write com.kapoko.audiovideomerger updates.beta.enabled -bool true
-defaults write com.kapoko.audiovideomerger updates.beta.enabled -bool false
+# or false
 ```
 
 ## Project history
