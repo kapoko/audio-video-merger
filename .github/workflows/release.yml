@@ -18,7 +18,6 @@ jobs:
 
     steps:
       - name: Checkout
-        if: ${{ !env.ACT }}
         uses: actions/checkout@v6
 
       - name: Validate tag matches VERSION
@@ -93,6 +92,7 @@ jobs:
               -o "${output_file}" \
               --disable-nested-code-check \
               --maximum-versions 1 \
+              --ed-key-file <(printf '%s' "${{ secrets.SPARKLE_PRIVATE_KEY_B64 }}") \
               --versions "${release_build_version}" \
               --download-url-prefix "https://github.com/${REPO}/releases/download/${RELEASE_TAG}/" \
               --link "https://audiovideomerger.github.io" \

@@ -38,7 +38,7 @@
     <key>SUScheduledCheckInterval</key>
     <integer>86400</integer>
     <key>SUPublicEDKey</key>
-    <string>__SPARKLE_PUBLIC_ED_KEY__</string>
+    <string>dRlHoP9xhz9hehnutwuNuqBNLwfXI5OAvhJYFrSU51c=</string>
     <key>CFBundleDocumentTypes</key>
     <array>
         <dict>
