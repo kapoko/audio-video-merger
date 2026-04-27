@@ -11,6 +11,12 @@ enum DropPromptState: Equatable {
   case hovering
 }
 
+enum ProgressOutcome {
+  case none
+  case success
+  case failure
+}
+
 @MainActor
 final class DropViewModel: ObservableObject {
   static let shared = DropViewModel()
@@ -26,6 +32,7 @@ final class DropViewModel: ObservableObject {
   @Published var successfulJobs = 0
   @Published var showUnrecognizedFilesAlert = false
   @Published var unrecognizedFilesMessage = ""
+  @Published var progressOutcome: ProgressOutcome = .none
 
   private let ffmpegProcessor = SimpleFFmpegProcessor()
   private var overwriteAllExistingFiles = false
@@ -89,14 +96,6 @@ final class DropViewModel: ObservableObject {
     default:
       return nil
     }
-  }
-
-  func progressSymbolName() -> String? {
-    if currentTask.hasPrefix("Done!") {
-      return "checkmark.circle.fill"
-    }
-
-    return nil
   }
 
   func handleDrop(providers: [NSItemProvider]) -> Bool {
@@ -212,6 +211,7 @@ final class DropViewModel: ObservableObject {
     successfulJobs = 0
     progress = 0
     currentTask = "Starting batch conversion..."
+    progressOutcome = .none
     isProcessing = true
     shouldShowJobIndex = true
 
@@ -394,11 +394,17 @@ final class DropViewModel: ObservableObject {
 
   private func finishBatchProcessing(showCompletionMessage: Bool) {
     if showCompletionMessage {
+      let hasFailures = successfulJobs < totalJobs
       let videoLabel = successfulJobs == 1 ? "video" : "videos"
       progress = 1
-      currentTask = "Done! Created \(successfulJobs) \(videoLabel)"
+      currentTask =
+        hasFailures
+        ? "Failed. Created \(successfulJobs) \(videoLabel)"
+        : "Done! Created \(successfulJobs) \(videoLabel)"
+      progressOutcome = hasFailures ? .failure : .success
       shouldShowJobIndex = false
-      sendCompletionNotification(processed: successfulJobs, total: totalJobs)
+      sendCompletionNotification(
+        processed: successfulJobs, total: totalJobs, hasFailures: hasFailures)
 
       Task {
         try? await Task.sleep(nanoseconds: 2_000_000_000)
@@ -412,7 +418,7 @@ final class DropViewModel: ObservableObject {
     resetProcessingState()
   }
 
-  private func sendCompletionNotification(processed: Int, total: Int) {
+  private func sendCompletionNotification(processed: Int, total: Int, hasFailures: Bool) {
     guard isAppBundle else {
       return
     }
@@ -420,8 +426,11 @@ final class DropViewModel: ObservableObject {
     let center = UNUserNotificationCenter.current()
 
     let content = UNMutableNotificationContent()
-    content.title = "Merging videos complete"
-    content.body = "✅ Created \(processed) of \(total) videos."
+    content.title = hasFailures ? "Merging finished with failures" : "Merging videos complete"
+    content.body =
+      hasFailures
+      ? "Created \(processed) of \(total) videos."
+      : "✅ Created \(processed) of \(total) videos."
     content.sound = .default
 
     let request = UNNotificationRequest(
@@ -443,6 +452,7 @@ final class DropViewModel: ObservableObject {
     isProcessing = false
     progress = 0
     currentTask = ""
+    progressOutcome = .none
     showUnrecognizedFilesAlert = false
     unrecognizedFilesMessage = ""
     shouldShowJobIndex = false

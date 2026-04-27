@@ -22,56 +22,7 @@ struct ContentView: View {
           CircularProgressRing(progress: viewModel.progress)
             .padding(.bottom, 12)
 
-          if let symbolName = viewModel.progressSymbolName() {
-            HStack(spacing: 8) {
-              Image(systemName: symbolName)
-                .foregroundColor(.green)
-                .frame(width: 14, height: 14)
-
-              Text(viewModel.progressLabel())
-                .foregroundColor(.primary)
-
-              if let jobLabel = viewModel.jobProgressLabel() {
-                Text(jobLabel)
-                  .font(.system(size: 11, weight: .semibold, design: .monospaced))
-                  .foregroundColor(.secondary)
-                  .padding(.horizontal, 8)
-                  .padding(.vertical, 3)
-                  .background(
-                    Capsule(style: .continuous)
-                      .fill(Color.secondary.opacity(0.15))
-                  )
-              }
-            }
-            .font(.system(size: 16, weight: .regular, design: .rounded))
-            .multilineTextAlignment(.center)
-            .frame(minHeight: 24)
-          } else {
-            HStack(spacing: 8) {
-              ProgressView()
-                .progressViewStyle(CircularProgressViewStyle())
-                .controlSize(.small)
-                .frame(width: 14, height: 14)
-
-              Text(viewModel.progressLabel())
-                .foregroundColor(.primary)
-
-              if let jobLabel = viewModel.jobProgressLabel() {
-                Text(jobLabel)
-                  .font(.system(size: 11, weight: .semibold, design: .monospaced))
-                  .foregroundColor(.secondary)
-                  .padding(.horizontal, 8)
-                  .padding(.vertical, 3)
-                  .background(
-                    Capsule(style: .continuous)
-                      .fill(Color.secondary.opacity(0.15))
-                  )
-              }
-            }
-            .font(.system(size: 16, weight: .regular, design: .rounded))
-            .multilineTextAlignment(.center)
-            .frame(minHeight: 24)
-          }
+          processingStatusRow
         }
         .frame(maxWidth: .infinity)
         .padding(.horizontal, 24)
@@ -126,6 +77,49 @@ struct ContentView: View {
     .animation(.easeInOut(duration: 0.2), value: viewModel.isDragHovering)
     .onDrop(of: [UTType.fileURL.identifier], isTargeted: $viewModel.isDragHovering) { providers in
       viewModel.handleDrop(providers: providers)
+    }
+  }
+
+  private var processingStatusRow: some View {
+    HStack(spacing: 8) {
+      progressIndicator
+
+      Text(viewModel.progressLabel())
+        .foregroundColor(.primary)
+
+      if let jobLabel = viewModel.jobProgressLabel() {
+        Text(jobLabel)
+          .font(.system(size: 11, weight: .semibold, design: .monospaced))
+          .foregroundColor(.secondary)
+          .padding(.horizontal, 8)
+          .padding(.vertical, 3)
+          .background(
+            Capsule(style: .continuous)
+              .fill(Color.secondary.opacity(0.15))
+          )
+      }
+    }
+    .font(.system(size: 16, weight: .regular, design: .rounded))
+    .multilineTextAlignment(.center)
+    .frame(minHeight: 24)
+  }
+
+  @ViewBuilder
+  private var progressIndicator: some View {
+    switch viewModel.progressOutcome {
+    case .none:
+      ProgressView()
+        .progressViewStyle(CircularProgressViewStyle())
+        .controlSize(.small)
+        .frame(width: 14, height: 14)
+    case .success:
+      Image(systemName: "checkmark.circle.fill")
+        .foregroundColor(.green)
+        .frame(width: 14, height: 14)
+    case .failure:
+      Image(systemName: "xmark.circle.fill")
+        .foregroundColor(.red)
+        .frame(width: 14, height: 14)
     }
   }
 }
