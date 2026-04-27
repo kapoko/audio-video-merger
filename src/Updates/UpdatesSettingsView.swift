@@ -39,7 +39,6 @@ struct UpdatesSettingsView: View {
 
     }
     .formStyle(.grouped)
-    .frame(width: 460)
   }
 
   private var automaticallyChecksBinding: Binding<Bool> {

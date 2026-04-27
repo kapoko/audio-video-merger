@@ -145,7 +145,7 @@ struct AudioVideoMergerApp: App {
 
   var body: some Scene {
     Settings {
-      UpdatesSettingsView(updateCoordinator: updateCoordinator)
+      SettingsView(updateCoordinator: updateCoordinator)
     }
     .commands {
       CommandGroup(after: .appInfo) {

@@ -83,7 +83,7 @@ class SimpleFFmpegProcessor {
 
       let process = Process()
       process.executableURL = URL(fileURLWithPath: ffmpegPath)
-      process.arguments = [
+      var arguments = [
         "-nostdin",
         "-progress", "pipe:2",  // Send progress to stderr
         "-i", videoURL.path,
@@ -91,9 +91,23 @@ class SimpleFFmpegProcessor {
         "-c:v", "copy",
         "-map", "0:v:0",
         "-map", "1:a:0",
-        "-y",
-        outputURL.path,
       ]
+
+      if AppSettings.prefersHigherQualityAudio {
+        let audioArguments = AppSettings.highQualityAudioArguments(
+          forOutputExtension: outputURL.pathExtension)
+        if audioArguments.isEmpty {
+          log(
+            "High-quality audio enabled, but no override for .\(outputURL.pathExtension.lowercased()); using FFmpeg default"
+          )
+        } else {
+          log("Applying high-quality audio arguments: \(audioArguments.joined(separator: " "))")
+          arguments.append(contentsOf: audioArguments)
+        }
+      }
+
+      arguments.append(contentsOf: ["-y", outputURL.path])
+      process.arguments = arguments
 
       // Setup stderr pipe to capture progress
       let stderrPipe = Pipe()
