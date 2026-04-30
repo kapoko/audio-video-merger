@@ -85,7 +85,7 @@ swift build
 Enable beta updates. Used for testing releases.
 
 ```bash
-defaults write com.kapoko.audiovideomerger updates.beta.enabled -bool true
+defaults write app.koman.audiovideomerger updates.beta.enabled -bool true
 # or false
 ```
 
