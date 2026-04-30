@@ -70,8 +70,10 @@ jobs:
         run: |
           set -euo pipefail
           app="dist/apps/Audio Video Merger-${{ matrix.arch }}.app"
+          ffmpeg_bin="$app/Contents/Resources/ffmpeg-${{ matrix.arch }}"
           codesign --verify --deep --strict --verbose=2 "$app"
           codesign --display --verbose=2 "$app"
+          codesign --display --verbose=4 "$ffmpeg_bin"
 
       - name: Sign DMG
         run: |
