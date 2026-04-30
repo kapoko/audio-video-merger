@@ -8,11 +8,17 @@ on:
 jobs:
   build:
     uses: ./.github/workflows/build.yml
+    secrets: inherit
 
   release:
     needs:
       - build
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
+    env:
+      APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+      APPLE_API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
+      APPLE_API_ISSUER_ID: ${{ secrets.APPLE_API_ISSUER_ID }}
+      APPLE_API_PRIVATE_KEY_B64: ${{ secrets.APPLE_API_PRIVATE_KEY_B64 }}
     permissions:
       contents: write
 
@@ -35,6 +41,36 @@ jobs:
           pattern: dmg-*
           path: dist
           merge-multiple: true
+
+      - name: Prepare notary API key
+        run: |
+          set -euo pipefail
+          test -n "${APPLE_TEAM_ID}"
+          test -n "${APPLE_API_KEY_ID}"
+          test -n "${APPLE_API_ISSUER_ID}"
+          test -n "${APPLE_API_PRIVATE_KEY_B64}"
+
+          KEY_PATH="$RUNNER_TEMP/AuthKey_${APPLE_API_KEY_ID}.p8"
+          printf '%s' "${APPLE_API_PRIVATE_KEY_B64}" | base64 --decode > "$KEY_PATH"
+          chmod 600 "$KEY_PATH"
+          echo "NOTARY_API_KEY_PATH=$KEY_PATH" >> "$GITHUB_ENV"
+
+      - name: Notarize DMGs
+        run: |
+          set -euo pipefail
+
+          for dmg in dist/*.dmg; do
+            xcrun notarytool submit "$dmg" \
+              --key "$NOTARY_API_KEY_PATH" \
+              --key-id "$APPLE_API_KEY_ID" \
+              --issuer "$APPLE_API_ISSUER_ID" \
+              --team-id "$APPLE_TEAM_ID" \
+              --wait
+
+            xcrun stapler staple "$dmg"
+            xcrun stapler validate "$dmg"
+            spctl -a -t open --context context:primary-signature -v "$dmg"
+          done
 
       - name: Publish GitHub release assets
         uses: softprops/action-gh-release@v3

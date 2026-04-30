@@ -96,7 +96,11 @@ bundle-x86_64 bundle-arm64: bundle-%: build-% setup
 		/usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString $(APP_VERSION)" "$$app_bundle/Contents/Info.plist"; \
 		/usr/libexec/PlistBuddy -c "Set :CFBundleVersion $(APP_BUILD_VERSION)" "$$app_bundle/Contents/Info.plist"; \
 		/usr/libexec/PlistBuddy -c "Set :SUFeedURL $$appcast_url" "$$app_bundle/Contents/Info.plist"; \
-		codesign --force --deep --sign - "$$app_bundle"; \
+		if [ -n "$$MACOS_SIGNING_IDENTITY" ]; then \
+			codesign --force --deep --timestamp --options runtime --sign "$$MACOS_SIGNING_IDENTITY" "$$app_bundle"; \
+		else \
+			codesign --force --deep --sign - "$$app_bundle"; \
+		fi; \
 		echo "App bundle created: $$app_bundle"
 
 # Create both DMG assets
