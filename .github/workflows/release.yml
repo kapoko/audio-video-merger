@@ -91,8 +91,8 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          gh run delete-artifact "$GITHUB_RUN_ID" dmg-arm64 --repo "$GITHUB_REPOSITORY"
-          gh run delete-artifact "$GITHUB_RUN_ID" dmg-x86_64 --repo "$GITHUB_REPOSITORY"
+          gh api -X DELETE "repos/${GITHUB_REPOSITORY}/actions/artifacts/$(gh api repos/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}/artifacts --jq '.artifacts[] | select(.name=="dmg-arm64") | .id')"
+          gh api -X DELETE "repos/${GITHUB_REPOSITORY}/actions/artifacts/$(gh api repos/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}/artifacts --jq '.artifacts[] | select(.name=="dmg-x86_64") | .id')"
 
       - name: Publish GitHub release assets
         uses: softprops/action-gh-release@v3
