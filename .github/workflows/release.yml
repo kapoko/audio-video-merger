@@ -156,7 +156,7 @@ jobs:
               --download-url-prefix "https://github.com/${REPO}/releases/download/${RELEASE_TAG}/" \
               --link "https://audiovideomerger.github.io" \
               --full-release-notes-url "https://github.com/${REPO}/releases" \
-              "${channel_args[@]}"
+              ${channel_args[@]+"${channel_args[@]}"}
           }
 
           generate_for_arch ./dist-appcast/dmg-arm64 ./dist-appcast/dmg-arm64/appcast-arm64.xml
