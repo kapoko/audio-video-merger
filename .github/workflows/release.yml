@@ -20,6 +20,7 @@ jobs:
       APPLE_API_ISSUER_ID: ${{ secrets.APPLE_API_ISSUER_ID }}
       APPLE_API_PRIVATE_KEY_B64: ${{ secrets.APPLE_API_PRIVATE_KEY_B64 }}
     permissions:
+      actions: write
       contents: write
 
     steps:
@@ -55,22 +56,43 @@ jobs:
           chmod 600 "$KEY_PATH"
           echo "NOTARY_API_KEY_PATH=$KEY_PATH" >> "$GITHUB_ENV"
 
+      - name: Create notarytool keychain profile
+        run: |
+          set -euo pipefail
+          xcrun notarytool store-credentials "notarytool-profile" \
+            --key "$NOTARY_API_KEY_PATH" \
+            --key-id "$APPLE_API_KEY_ID" \
+            --issuer "$APPLE_API_ISSUER_ID"
+
       - name: Notarize DMGs
         run: |
           set -euo pipefail
 
           for dmg in dist/*.dmg; do
             xcrun notarytool submit "$dmg" \
-              --key "$NOTARY_API_KEY_PATH" \
-              --key-id "$APPLE_API_KEY_ID" \
-              --issuer "$APPLE_API_ISSUER_ID" \
-              --team-id "$APPLE_TEAM_ID" \
+              --keychain-profile "notarytool-profile" \
               --wait
 
             xcrun stapler staple "$dmg"
             xcrun stapler validate "$dmg"
             spctl -a -t open --context context:primary-signature -v "$dmg"
           done
+
+      - name: Upload notarized DMG artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: dmg-notarized
+          path: dist/*.dmg
+          if-no-files-found: error
+          compression-level: 0
+
+      - name: Delete unnotarized build artifacts
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh run delete-artifact "$GITHUB_RUN_ID" dmg-arm64 --repo "$GITHUB_REPOSITORY"
+          gh run delete-artifact "$GITHUB_RUN_ID" dmg-x86_64 --repo "$GITHUB_REPOSITORY"
 
       - name: Publish GitHub release assets
         uses: softprops/action-gh-release@v3
@@ -90,8 +112,9 @@ jobs:
       - name: Download build artifacts
         uses: actions/download-artifact@v8
         with:
-          pattern: dmg-*
+          pattern: dmg-notarized
           path: dist-appcast
+          merge-multiple: true
 
       - name: Seed existing appcasts
         run: |
@@ -99,6 +122,14 @@ jobs:
           mkdir -p dist-appcast/dmg-arm64 dist-appcast/dmg-x86_64
           curl -fsSL "https://audiovideomerger.github.io/appcast-arm64.xml" -o dist-appcast/dmg-arm64/appcast-arm64.xml || true
           curl -fsSL "https://audiovideomerger.github.io/appcast-x86_64.xml" -o dist-appcast/dmg-x86_64/appcast-x86_64.xml || true
+
+      - name: Arrange notarized DMGs by architecture
+        run: |
+          set -euo pipefail
+          arm64_dmg="$(ls dist-appcast/*-arm64-*.dmg)"
+          x86_dmg="$(ls dist-appcast/*-x86_64-*.dmg)"
+          mv "$arm64_dmg" dist-appcast/dmg-arm64/
+          mv "$x86_dmg" dist-appcast/dmg-x86_64/
 
       - name: Resolve Sparkle generate_appcast
         run: |
