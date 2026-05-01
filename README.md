@@ -41,28 +41,14 @@ When an output file already exists, the app asks whether to overwrite.
 # Development run
 swift run
 
-# Build release binary for host architecture
-make build
-
-# Run release binary
-make run
-
 # Create app bundles
 make bundle
-make bundle-x86_64
-make bundle-arm64
 
 # Create release DMG assets
 make dmg
-make dmg-x86_64
-make dmg-arm64
 ```
 
 Build outputs are written to `dist/` (`dist/apps/*.app` and release DMGs in `dist/*.dmg`).
-
-## Notifications and app verification
-
-- The app is ad-hoc signed (not notarized), so macOS may show a verification warning on first launch. If that happens, allow it from _System Settings_ -> _Privacy & Security_ -> _Open Anyway_.
 
 ## Platform and requirements
 
