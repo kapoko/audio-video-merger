@@ -63,4 +63,39 @@ final class SmokeTests: XCTestCase {
         XCTAssertEqual(result.videoURLs.count, 3)
         XCTAssertEqual(result.numVideos, 6)
     }
+
+    func testFilePairingMatcherFindsExpectedPairsForSimilarNames() {
+        let matcher = FilePairingMatcher(
+            configuration: .init(minPairScore: 0.3, minAverageScore: 0.3, minTopSecondGap: 0)
+        )
+
+        let audios = [
+            URL(fileURLWithPath: "/tmp/BrandA_Campaign_Red_Dress_611_Voiceover_v1.wav"),
+            URL(fileURLWithPath: "/tmp/BrandA_Campaign_Blue_Jeans_924_Voiceover_v1.wav")
+        ]
+        let videos = [
+            URL(fileURLWithPath: "/tmp/Campaign Red Dress 611 1920x1080 converted syncfix.mp4"),
+            URL(fileURLWithPath: "/tmp/Campaign Blue Jeans 924 1920x1080 converted syncfix.mp4")
+        ]
+
+        let pairs = matcher.suggestedPairs(videos: videos, audios: audios)
+
+        XCTAssertNotNil(pairs)
+        XCTAssertEqual(pairs?.count, 2)
+
+        let pairedByVideoName = Dictionary(
+            uniqueKeysWithValues: (pairs ?? []).map {
+                ($0.videoURL.lastPathComponent, $0.audioURL.lastPathComponent)
+            }
+        )
+
+        XCTAssertEqual(
+            pairedByVideoName["Campaign Red Dress 611 1920x1080 converted syncfix.mp4"],
+            "BrandA_Campaign_Red_Dress_611_Voiceover_v1.wav"
+        )
+        XCTAssertEqual(
+            pairedByVideoName["Campaign Blue Jeans 924 1920x1080 converted syncfix.mp4"],
+            "BrandA_Campaign_Blue_Jeans_924_Voiceover_v1.wav"
+        )
+    }
 }
