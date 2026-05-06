@@ -35,6 +35,7 @@ final class DropViewModel: ObservableObject {
   @Published var progressOutcome: ProgressOutcome = .none
 
   private let ffmpegProcessor = SimpleFFmpegProcessor()
+  private let pairingMatcher = FilePairingMatcher()
   private var overwriteAllExistingFiles = false
 
   private var jobWeightsBytes: [Double] = []
@@ -43,6 +44,13 @@ final class DropViewModel: ObservableObject {
   private var shouldShowJobIndex = false
   private var activeProgressToken = UUID()
   private var lastLocalProgressForActiveJob: Double = 0
+
+  private typealias Job = (videoURL: URL, audioURL: URL, outputURL: URL)
+
+  private enum JobCreationMode {
+    case allCombinations
+    case suggestedPairs([(videoURL: URL, audioURL: URL)])
+  }
 
   private var isAppBundle: Bool {
     Bundle.main.bundleURL.pathExtension == "app"
@@ -201,7 +209,8 @@ final class DropViewModel: ObservableObject {
   }
 
   private func startBatchProcessing() {
-    let jobs = createJobs()
+    let jobMode = resolveJobCreationMode()
+    let jobs = createJobs(mode: jobMode)
     guard !jobs.isEmpty else {
       return
     }
@@ -223,6 +232,27 @@ final class DropViewModel: ObservableObject {
     Task {
       await processJobs(jobs)
     }
+  }
+
+  private func resolveJobCreationMode() -> JobCreationMode {
+    guard let suggestedPairs = suggestedPairingsIfConfident() else {
+      return .allCombinations
+    }
+
+    let alert = NSAlert()
+    alert.alertStyle = .informational
+    alert.messageText = "Pair up?"
+    alert.informativeText =
+      "You added a similar number of audio files to video files. Do you want to make pairs?"
+    alert.addButton(withTitle: "Yes")
+    alert.addButton(withTitle: "No")
+
+    let response = alert.runModal()
+    if response == .alertFirstButtonReturn {
+      return .suggestedPairs(suggestedPairs)
+    }
+
+    return .allCombinations
   }
 
   private func configureProgressHandler(forJobAt index: Int) {
@@ -258,13 +288,21 @@ final class DropViewModel: ObservableObject {
     currentTask = task
   }
 
-  private func createJobs() -> [(videoURL: URL, audioURL: URL, outputURL: URL)] {
-    var jobs: [(videoURL: URL, audioURL: URL, outputURL: URL)] = []
+  private func createJobs(mode: JobCreationMode) -> [Job] {
+    var jobs: [Job] = []
 
-    for videoURL in droppedVideoURLs {
-      for audioURL in droppedAudioURLs {
-        let outputURL = createCombinedOutputPath(videoURL: videoURL, audioURL: audioURL)
-        jobs.append((videoURL: videoURL, audioURL: audioURL, outputURL: outputURL))
+    switch mode {
+    case .allCombinations:
+      for videoURL in droppedVideoURLs {
+        for audioURL in droppedAudioURLs {
+          let outputURL = createCombinedOutputPath(videoURL: videoURL, audioURL: audioURL)
+          jobs.append((videoURL: videoURL, audioURL: audioURL, outputURL: outputURL))
+        }
+      }
+    case .suggestedPairs(let pairs):
+      for pair in pairs {
+        let outputURL = createPairedOutputPath(videoURL: pair.videoURL, audioURL: pair.audioURL)
+        jobs.append((videoURL: pair.videoURL, audioURL: pair.audioURL, outputURL: outputURL))
       }
     }
 
@@ -289,6 +327,18 @@ final class DropViewModel: ObservableObject {
     }
 
     return audioDirectory.appendingPathComponent(outputFilename)
+  }
+
+  private func createPairedOutputPath(videoURL: URL, audioURL: URL) -> URL {
+    let audioDirectory = audioURL.deletingLastPathComponent()
+    let audioNameWithoutExtension = audioURL.deletingPathExtension().lastPathComponent
+    let videoExtension = videoURL.pathExtension
+    let outputFilename = "\(audioNameWithoutExtension).\(videoExtension)"
+    return audioDirectory.appendingPathComponent(outputFilename)
+  }
+
+  private func suggestedPairingsIfConfident() -> [(videoURL: URL, audioURL: URL)]? {
+    pairingMatcher.suggestedPairs(videos: droppedVideoURLs, audios: droppedAudioURLs)
   }
 
   private func createJobWeights(for jobs: [(videoURL: URL, audioURL: URL, outputURL: URL)])
