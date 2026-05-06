@@ -1,3 +1,4 @@
+import SparkleUpdater
 import SwiftUI
 
 struct SettingsView: View {

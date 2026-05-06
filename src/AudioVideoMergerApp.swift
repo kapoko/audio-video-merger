@@ -1,6 +1,24 @@
 import AppKit
+import SparkleUpdater
 import SwiftUI
 import UserNotifications
+
+@MainActor
+enum AppDependencies {
+  static let updateCoordinator = UpdateCoordinator(
+    configuration: .init(
+      feedURLStringProvider: {
+        #if arch(arm64)
+          return "https://audiovideomerger.github.io/appcast-arm64.xml"
+        #else
+          return "https://audiovideomerger.github.io/appcast-x86_64.xml"
+        #endif
+      },
+      betaUpdatesEnabledProvider: {
+        UserDefaults.standard.bool(forKey: UpdateSettings.defaultsKeys().betaUpdatesEnabled)
+      }
+    ))
+}
 
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate,
@@ -13,7 +31,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate,
     NSApp.setActivationPolicy(.regular)
     NSApp.activate(ignoringOtherApps: true)
 
-    UpdateCoordinator.shared.initializeUpdater()
+    AppDependencies.updateCoordinator.initializeUpdater()
 
     if (Bundle.main.object(forInfoDictionaryKey: "CFBundlePackageType") as? String) == "APPL" {
       configureNotifications()
@@ -26,7 +44,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate,
       enqueueOpenedFiles(startupPaths)
     }
 
-    UpdateCoordinator.shared.performStartupCheckIfNeeded()
+    AppDependencies.updateCoordinator.performStartupCheckIfNeeded()
   }
 
   nonisolated func userNotificationCenter(
@@ -141,7 +159,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate,
 @main
 struct AudioVideoMergerApp: App {
   @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
-  @StateObject private var updateCoordinator = UpdateCoordinator.shared
+  @StateObject private var updateCoordinator = AppDependencies.updateCoordinator
 
   var body: some Scene {
     Settings {
@@ -150,7 +168,7 @@ struct AudioVideoMergerApp: App {
     .commands {
       CommandGroup(after: .appInfo) {
         Button("Check for Updates...") {
-          UpdateCoordinator.shared.checkForUpdates()
+          AppDependencies.updateCoordinator.checkForUpdates()
         }
       }
     }

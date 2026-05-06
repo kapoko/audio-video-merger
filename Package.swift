@@ -10,13 +10,13 @@ let package = Package(
         .executable(name: "AudioVideoMerger", targets: ["AudioVideoMerger"])
     ],
     dependencies: [
-        .package(url: "https://github.com/sparkle-project/Sparkle", from: "2.9.1")
+        .package(url: "https://github.com/kapoko/sparkle-updater", branch: "main")
     ],
     targets: [
         .executableTarget(
             name: "AudioVideoMerger",
             dependencies: [
-                .product(name: "Sparkle", package: "Sparkle")
+                .product(name: "SparkleUpdater", package: "sparkle-updater")
             ],
             path: "src"
         ),
