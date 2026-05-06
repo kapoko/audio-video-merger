@@ -209,32 +209,32 @@ final class DropViewModel: ObservableObject {
   }
 
   private func startBatchProcessing() {
-    let jobMode = resolveJobCreationMode()
-    let jobs = createJobs(mode: jobMode)
-    guard !jobs.isEmpty else {
-      return
-    }
-
-    totalJobs = jobs.count
-    currentJobIndex = 0
-    successfulJobs = 0
-    progress = 0
-    currentTask = "Starting batch conversion..."
-    progressOutcome = .none
-    isProcessing = true
-    shouldShowJobIndex = true
-
-    jobWeightsBytes = createJobWeights(for: jobs)
-    totalWeightBytes = max(jobWeightsBytes.reduce(0, +), 1)
-    completedWeightBytes = 0
-    overwriteAllExistingFiles = false
-
     Task {
+      let jobMode = await resolveJobCreationMode()
+      let jobs = createJobs(mode: jobMode)
+      guard !jobs.isEmpty else {
+        return
+      }
+
+      totalJobs = jobs.count
+      currentJobIndex = 0
+      successfulJobs = 0
+      progress = 0
+      currentTask = "Starting batch conversion..."
+      progressOutcome = .none
+      isProcessing = true
+      shouldShowJobIndex = true
+
+      jobWeightsBytes = createJobWeights(for: jobs)
+      totalWeightBytes = max(jobWeightsBytes.reduce(0, +), 1)
+      completedWeightBytes = 0
+      overwriteAllExistingFiles = false
+
       await processJobs(jobs)
     }
   }
 
-  private func resolveJobCreationMode() -> JobCreationMode {
+  private func resolveJobCreationMode() async -> JobCreationMode {
     guard let suggestedPairs = suggestedPairingsIfConfident() else {
       return .allCombinations
     }
@@ -247,6 +247,7 @@ final class DropViewModel: ObservableObject {
     alert.addButton(withTitle: "Yes")
     alert.addButton(withTitle: "No")
 
+    try? await Task.sleep(nanoseconds: 200_000_000)
     let response = alert.runModal()
     if response == .alertFirstButtonReturn {
       return .suggestedPairs(suggestedPairs)

@@ -20,11 +20,13 @@ struct FilePairingMatcher {
 
   private let configuration: Configuration
 
-  init(configuration: Configuration = Configuration(
-    minPairScore: 0.45,
-    minAverageScore: 0.58,
-    minTopSecondGap: 0.03
-  )) {
+  init(
+    configuration: Configuration = Configuration(
+      minPairScore: 0.45,
+      minAverageScore: 0.58,
+      minTopSecondGap: 0.03
+    )
+  ) {
     self.configuration = configuration
   }
 
@@ -79,7 +81,8 @@ struct FilePairingMatcher {
     var chosen: [(videoURL: URL, audioURL: URL)] = []
 
     for candidate in sortedCandidates {
-      if usedVideoPaths.contains(candidate.videoURL.path) || usedAudioPaths.contains(candidate.audioURL.path)
+      if usedVideoPaths.contains(candidate.videoURL.path)
+        || usedAudioPaths.contains(candidate.audioURL.path)
       {
         continue
       }
@@ -123,9 +126,11 @@ struct FilePairingMatcher {
       return nil
     }
 
-    let chosenByVideoPath = Dictionary(uniqueKeysWithValues: scoredChosen.map { ($0.0.videoURL.path, $0.1) })
+    let chosenByVideoPath = Dictionary(
+      uniqueKeysWithValues: scoredChosen.map { ($0.0.videoURL.path, $0.1) })
     for videoURL in videos {
-      let candidatesForVideo = candidates
+      let candidatesForVideo =
+        candidates
         .filter { $0.videoURL == videoURL }
         .map(\.score)
         .sorted(by: >)
@@ -159,7 +164,8 @@ struct FilePairingMatcher {
       rhs: normalizedAudio.tokens,
       tokenWeights: tokenWeights
     )
-    let distanceScore = normalizedEditSimilarity(lhs: normalizedVideo.compactName, rhs: normalizedAudio.compactName)
+    let distanceScore = normalizedEditSimilarity(
+      lhs: normalizedVideo.compactName, rhs: normalizedAudio.compactName)
 
     return tokenScore * 0.75 + distanceScore * 0.25
   }
@@ -171,7 +177,8 @@ struct FilePairingMatcher {
       with: " ",
       options: .regularExpression
     )
-    let tokens = replaced
+    let tokens =
+      replaced
       .split(whereSeparator: \.isWhitespace)
       .map(String.init)
       .filter { !$0.isEmpty }
@@ -205,7 +212,9 @@ struct FilePairingMatcher {
     return weights
   }
 
-  private func tokenSimilarity(lhs: [String], rhs: [String], tokenWeights: [String: Double]) -> Double {
+  private func tokenSimilarity(lhs: [String], rhs: [String], tokenWeights: [String: Double])
+    -> Double
+  {
     let lhsSet = Set(lhs)
     let rhsSet = Set(rhs)
     guard !lhsSet.isEmpty || !rhsSet.isEmpty else {
