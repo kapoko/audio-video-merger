@@ -6,6 +6,8 @@ DIST_DIR := dist
 APP_BUNDLE_DIR := $(DIST_DIR)/apps
 APP_VERSION := $(shell tr -d '[:space:]' < VERSION)
 APP_BUILD_VERSION := $(shell tr -d '[:space:]' < VERSION | sed -E 's/-beta\.([0-9]+)$$/b\1/; s/-.*$$//')
+APPCAST_URL_ARM64 ?= https://audiovideomerger.github.io/appcast-arm64.xml
+APPCAST_URL_X86_64 ?= https://audiovideomerger.github.io/appcast-x86_64.xml
 DMG_TEMPLATE_DIR := Resources/packaging/dmg-template
 DMG_TEMPLATE_DSSTORE := $(DMG_TEMPLATE_DIR)/dmg-layout.DS_Store
 DMG_TEMPLATE_BACKGROUND := $(DMG_TEMPLATE_DIR)/background.tiff
@@ -65,7 +67,12 @@ bundle-x86_64 bundle-arm64: bundle-%: build-% setup
 	@mkdir -p "$(APP_BUNDLE_DIR)"
 	@app_bundle="$(APP_BUNDLE_DIR)/Audio Video Merger-$*.app"; \
 		app_executable="$$app_bundle/Contents/MacOS/$(EXECUTABLE)"; \
-		appcast_url="https://audiovideomerger.github.io/appcast-$*.xml"; \
+		appcast_url=""; \
+		if [ "$*" = "arm64" ]; then \
+			appcast_url="$(APPCAST_URL_ARM64)"; \
+		else \
+			appcast_url="$(APPCAST_URL_X86_64)"; \
+		fi; \
 		rm -rf "$$app_bundle"; \
 		mkdir -p "$$app_bundle/Contents/MacOS"; \
 		mkdir -p "$$app_bundle/Contents/Resources"; \

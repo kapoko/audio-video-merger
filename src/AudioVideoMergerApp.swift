@@ -7,13 +7,6 @@ import UserNotifications
 enum AppDependencies {
   static let updateCoordinator = UpdateCoordinator(
     configuration: .init(
-      feedURLStringProvider: {
-        #if arch(arm64)
-          return "https://audiovideomerger.github.io/appcast-arm64.xml"
-        #else
-          return "https://audiovideomerger.github.io/appcast-x86_64.xml"
-        #endif
-      },
       betaUpdatesEnabledProvider: {
         UserDefaults.standard.bool(forKey: UpdateSettings.defaultsKeys().betaUpdatesEnabled)
       }
