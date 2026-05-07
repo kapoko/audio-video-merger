@@ -8,9 +8,6 @@ APP_VERSION := $(shell tr -d '[:space:]' < VERSION)
 APP_BUILD_VERSION := $(shell tr -d '[:space:]' < VERSION | sed -E 's/-beta\.([0-9]+)$$/b\1/; s/-.*$$//')
 APPCAST_URL_ARM64 ?= https://audiovideomerger.github.io/appcast-arm64.xml
 APPCAST_URL_X86_64 ?= https://audiovideomerger.github.io/appcast-x86_64.xml
-DMG_TEMPLATE_DIR := Resources/packaging/dmg-template
-DMG_TEMPLATE_DSSTORE := $(DMG_TEMPLATE_DIR)/dmg-layout.DS_Store
-DMG_TEMPLATE_BACKGROUND := $(DMG_TEMPLATE_DIR)/background.tiff
 
 # Default target
 all: setup build
@@ -115,28 +112,33 @@ bundle-x86_64 bundle-arm64: bundle-%: build-% setup
 dmg: dmg-x86_64 dmg-arm64
 	@echo "All DMG assets created"
 
-# Create architecture-specific DMG with installer layout
+# Create architecture-specific DMG using create-dmg
 dmg-x86_64 dmg-arm64: dmg-%: bundle-%
 	@echo "Creating $* DMG asset..."
 	@mkdir -p "$(DIST_DIR)"
-	@tmpdir="$$(mktemp -d)"; \
-		set -e; \
-		stage="$$tmpdir/stage"; \
-		rw_dmg="$$tmpdir/AudioVideoMerger-rw.dmg"; \
-		mountpoint="$$tmpdir/mnt"; \
+	@app_bundle="$(APP_BUNDLE_DIR)/Audio Video Merger-$*.app"; \
+		tmpdir="$$(mktemp -d)"; \
+		staged_app="$$tmpdir/Audio Video Merger.app"; \
+		tmp_dmg_dir="$$tmpdir/dmg"; \
+		generated_dmg="$$tmp_dmg_dir/Audio Video Merger.dmg"; \
 		final_dmg="$(DIST_DIR)/AudioVideoMerger-darwin-$*-$(APP_VERSION).dmg"; \
-		app_bundle="$(APP_BUNDLE_DIR)/Audio Video Merger-$*.app"; \
-		mkdir -p "$$stage"; \
-		mkdir -p "$$stage/.background"; \
-		cp "$(DMG_TEMPLATE_BACKGROUND)" "$$stage/.background/background.tiff"; \
-		ditto "$$app_bundle" "$$stage/$(APP_NAME)"; \
-		ln -s /Applications "$$stage/Applications"; \
-		chflags hidden "$$stage/.background"; \
-		hdiutil create -quiet -ov -srcfolder "$$stage" -volname "Audio Video Merger" -fs HFS+ -format UDRW "$$rw_dmg"; \
-		mkdir -p "$$mountpoint"; \
-		hdiutil attach -quiet -readwrite -noverify -noautoopen -mountpoint "$$mountpoint" "$$rw_dmg"; \
-		cp "$(DMG_TEMPLATE_DSSTORE)" "$$mountpoint/.DS_Store"; \
-		hdiutil detach "$$mountpoint" -quiet; \
-		hdiutil convert -quiet -ov "$$rw_dmg" -format UDZO -imagekey zlib-level=9 -o "$$final_dmg"; \
+		rm -rf "$$staged_app"; \
+		mkdir -p "$$tmp_dmg_dir"; \
+		ditto "$$app_bundle" "$$staged_app"; \
+		rm -rf "$$final_dmg"; \
+		if [ -n "$$MACOS_SIGNING_IDENTITY" ]; then set -- --identity "$$MACOS_SIGNING_IDENTITY"; else set --; fi; \
+		create-dmg \
+			--overwrite \
+			--dmg-title="Audio Video Merger" \
+			--no-version-in-filename \
+			"$$@" \
+			"$$staged_app" \
+			"$$tmp_dmg_dir"; \
+		if [ ! -f "$$generated_dmg" ]; then \
+			echo "create-dmg did not produce a DMG file"; \
+			rm -rf "$$tmpdir"; \
+			exit 1; \
+		fi; \
+		mv "$$generated_dmg" "$$final_dmg"; \
 		rm -rf "$$tmpdir"; \
 		echo "Created $$final_dmg"

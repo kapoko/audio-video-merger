@@ -63,6 +63,9 @@ jobs:
 
           echo "CI_KEYCHAIN_PATH=$KEYCHAIN_PATH" >> "$GITHUB_ENV"
 
+      - name: Install create-dmg
+        run: npm install --global create-dmg
+
       - name: Build and package DMG
         run: make dmg-${{ matrix.arch }}
 
