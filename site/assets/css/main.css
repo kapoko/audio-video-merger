@@ -19,6 +19,12 @@
   --video-ratio: 0.6453252033;
 }
 
+@media (max-width: 991px) {
+  :root {
+    --font-size-base: 1rem;
+  }
+}
+
 * {
   box-sizing: border-box;
 }
@@ -49,6 +55,12 @@ h6 {
 
 h1 {
   font-size: 2.3em;
+}
+
+@media (max-width: 991px) {
+  h1 {
+    font-size: 2em;
+  }
 }
 
 a {
@@ -90,6 +102,10 @@ a:hover {
   display: flex;
 }
 
+.d-none {
+  display: none;
+}
+
 .flex-row {
   flex-direction: row;
 }
@@ -108,6 +124,10 @@ a:hover {
 
 .text-center {
   text-align: center;
+}
+
+.text-start {
+  text-align: left;
 }
 
 .mt-2 {
@@ -166,6 +186,14 @@ a:hover {
 
   .justify-content-lg-start {
     justify-content: flex-start;
+  }
+
+  .d-lg-block {
+    display: block;
+  }
+
+  .d-lg-none {
+    display: none;
   }
 }
 
@@ -339,6 +367,12 @@ a:hover {
     margin-left: calc(var(--grid-gutter-width) * -0.5);
     margin-right: calc(var(--grid-gutter-width) * -0.5);
     padding-bottom: calc(100vw * var(--video-ratio));
+  }
+}
+
+@media (max-width: 991px) {
+  .hero-video-mobile {
+    margin-bottom: 0.75rem;
   }
 }
 

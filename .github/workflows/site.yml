@@ -9,6 +9,9 @@ on:
     branches:
       - main
       - dev
+    paths:
+      - site/**
+      - .github/workflows/site.yml
 
 jobs:
   build:

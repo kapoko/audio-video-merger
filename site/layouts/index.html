@@ -9,6 +9,13 @@
         </picture>
         <h1 class="mt-2">Audio Video Merger</h1>
         <p class="my-3 my-md-4">An open source one-trick pony for painlessly replacing audio under video files.</p>
+        <div class="hero-video hero-video-mobile mt-4 d-lg-none text-start">
+            <video loop muted autoplay playsinline>
+                <source src="/videos/avm-dragdrop.mp4" type="video/mp4">
+                <source src="/videos/avm-dragdrop.webm" type="video/webm">
+                Your browser does not support the video tag.
+            </video>
+        </div>
         <div class="download-buttons d-flex flex-row justify-content-center justify-content-lg-start flex-wrap gap-2">
             <a href="https://github.com/kapoko/audio-video-merger/releases/download/v{{$version}}/AudioVideoMerger-darwin-arm64-{{$version}}.dmg"
                 target="_blank" rel="noopener" class="download-button mt-2">
@@ -48,7 +55,7 @@
             </span>
         </div>
     </div>
-    <div class="col-12 col-lg-6">
+    <div class="col-12 col-lg-6 d-none d-lg-block">
         <div class="hero-video mt-4 mt-lg-0">
             <video loop muted autoplay playsinline>
                 <source src="/videos/avm-dragdrop.mp4" type="video/mp4">

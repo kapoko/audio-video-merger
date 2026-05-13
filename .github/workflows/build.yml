@@ -6,6 +6,10 @@ on:
     branches:
       - main
       - dev
+    paths-ignore:
+      - VERSION
+      - README.md
+      - site/**
 
 jobs:
   checks:
