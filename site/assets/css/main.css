@@ -337,6 +337,11 @@ a:hover {
   color: var(--body-color);
 }
 
+.hero .bottom-links .bottom-links-license::before {
+  content: "\00B7";
+  margin-right: 1.5rem;
+}
+
 .hero img {
   width: 120px;
 }
