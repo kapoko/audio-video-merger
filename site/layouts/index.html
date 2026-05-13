@@ -1,5 +1,7 @@
 {{ define "main" }}
 {{ $version := getenv "HUGO_APP_VERSION" | default "dev" }}
+{{ $arm64Size := getenv "HUGO_ARM64_SIZE_MB" }}
+{{ $x86Size := getenv "HUGO_X86_SIZE_MB" }}
 
 <div class="hero row">
     <div class="col-12 col-lg-6 text-center text-lg-start pe-lg-5">
@@ -28,7 +30,7 @@
                         macOS <span class="arch">(Apple Silicon)</span>
                     </span>
                     <span class="version">
-                        <small>dmg, v{{$version}}</small>
+                        <small>v{{$version}} - arm64 - dmg{{ if $arm64Size }} - {{$arm64Size}} MB{{ end }}</small>
                     </span>
                 </span>
             </a>
@@ -43,7 +45,7 @@
                         macOS <span class="arch">(Intel)</span>
                     </span>
                     <span class="version">
-                        <small>dmg, v{{$version}}</small>
+                        <small>v{{$version}} - x86_64 - dmg{{ if $x86Size }} - {{$x86Size}} MB{{ end }}</small>
                     </span>
                 </span>
             </a>

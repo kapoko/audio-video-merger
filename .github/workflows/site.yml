@@ -57,7 +57,25 @@ jobs:
         run: |
           set -euo pipefail
           latest_stable_tag="$(gh api "repos/${GITHUB_REPOSITORY}/releases/latest" --jq '.tag_name')"
-          HUGO_APP_VERSION="${latest_stable_tag#v}" npm run build
+          app_version="${latest_stable_tag#v}"
+
+          arm64_size_mb=""
+          x86_size_mb=""
+          release_json="$(gh api "repos/${GITHUB_REPOSITORY}/releases/tags/${latest_stable_tag}")"
+          arm64_bytes="$(printf '%s' "${release_json}" | jq -r --arg v "${app_version}" '[.assets[] | select(.name == ("AudioVideoMerger-darwin-arm64-" + $v + ".dmg")) | .size][0]')"
+          x86_bytes="$(printf '%s' "${release_json}" | jq -r --arg v "${app_version}" '[.assets[] | select(.name == ("AudioVideoMerger-darwin-x86_64-" + $v + ".dmg")) | .size][0]')"
+
+          if [ -n "${arm64_bytes}" ] && [ "${arm64_bytes}" != "null" ]; then
+            arm64_size_mb="$(python3 -c "print(f'{int(${arm64_bytes}) / 1048576:.1f}')")"
+          fi
+          if [ -n "${x86_bytes}" ] && [ "${x86_bytes}" != "null" ]; then
+            x86_size_mb="$(python3 -c "print(f'{int(${x86_bytes}) / 1048576:.1f}')")"
+          fi
+
+          HUGO_APP_VERSION="${app_version}" \
+          HUGO_ARM64_SIZE_MB="${arm64_size_mb}" \
+          HUGO_X86_SIZE_MB="${x86_size_mb}" \
+          npm run build
 
       - name: Upload site artifact
         uses: actions/upload-artifact@v7
