@@ -48,6 +48,13 @@ jobs:
           cp ../artifacts/appcast/dmg-arm64/appcast-arm64.xml static/appcast-arm64.xml
           cp ../artifacts/appcast/dmg-x86_64/appcast-x86_64.xml static/appcast-x86_64.xml
 
+      - name: Preserve existing appcast files on non-release
+        if: env.IS_RELEASE != 'true'
+        run: |
+          set -euo pipefail
+          curl -fsSL "https://audiovideomerger.github.io/appcast-arm64.xml" -o static/appcast-arm64.xml
+          curl -fsSL "https://audiovideomerger.github.io/appcast-x86_64.xml" -o static/appcast-x86_64.xml
+
       - name: Install dependencies
         run: npm install
 
@@ -77,18 +84,24 @@ jobs:
           HUGO_X86_SIZE_MB="${x86_size_mb}" \
           npm run build
 
-      - name: Upload site artifact
+      - name: Upload legacy site artifact
         uses: actions/upload-artifact@v7
         with:
           name: site-public
           path: site/public
           if-no-files-found: error
 
-  deploy:
+      - name: Upload pages artifact
+        uses: actions/upload-pages-artifact@v5
+        with:
+          name: github-pages-${{ github.run_id }}
+          path: site/public
+
+  deploy-legacy:
     needs: build
     runs-on: ubuntu-latest
     concurrency:
-      group: site-deploy
+      group: site-deploy-legacy
       cancel-in-progress: true
     steps:
 
@@ -129,3 +142,22 @@ jobs:
 
           git commit -m "Update from ${GITHUB_REPOSITORY}@${GITHUB_SHA}"
           git push
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    concurrency:
+      group: site-deploy
+      cancel-in-progress: true
+    needs: build
+    permissions:
+      pages: write
+      id-token: write
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5
+        with:
+          artifact_name: github-pages-${{ github.run_id }}
