@@ -337,9 +337,34 @@ a:hover {
   color: var(--body-color);
 }
 
+.hero .bottom-links {
+  font-size: 0.95rem;
+}
+
+.hero .bottom-links .bottom-links-license {
+  margin-left: 1rem;
+}
+
 .hero .bottom-links .bottom-links-license::before {
   content: "\00B7";
-  margin-right: 1.5rem;
+  margin-right: 1rem;
+}
+
+@media (max-width: 991px) {
+  .hero .bottom-links {
+    align-items: center;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .hero .bottom-links .bottom-links-license {
+    margin-left: 0;
+  }
+
+  .hero .bottom-links .bottom-links-license::before {
+    content: none;
+    margin-right: 0;
+  }
 }
 
 .hero img {
