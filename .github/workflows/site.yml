@@ -52,8 +52,8 @@ jobs:
         if: env.IS_RELEASE != 'true'
         run: |
           set -euo pipefail
-          curl -fsSL "https://audiovideomerger.github.io/appcast-arm64.xml" -o static/appcast-arm64.xml
-          curl -fsSL "https://audiovideomerger.github.io/appcast-x86_64.xml" -o static/appcast-x86_64.xml
+          curl -fsSL "https://audiovideomerger.koman.app/appcast-arm64.xml" -o static/appcast-arm64.xml
+          curl -fsSL "https://audiovideomerger.koman.app/appcast-x86_64.xml" -o static/appcast-x86_64.xml
 
       - name: Install dependencies
         run: npm install

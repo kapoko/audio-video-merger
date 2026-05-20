@@ -6,8 +6,8 @@ DIST_DIR := dist
 APP_BUNDLE_DIR := $(DIST_DIR)/apps
 APP_VERSION := $(shell tr -d '[:space:]' < VERSION)
 APP_BUILD_VERSION := $(shell tr -d '[:space:]' < VERSION | sed -E 's/-beta\.([0-9]+)$$/b\1/; s/-.*$$//')
-APPCAST_URL_ARM64 ?= https://audiovideomerger.github.io/appcast-arm64.xml
-APPCAST_URL_X86_64 ?= https://audiovideomerger.github.io/appcast-x86_64.xml
+APPCAST_URL_ARM64 ?= https://audiovideomerger.koman.app/appcast-arm64.xml
+APPCAST_URL_X86_64 ?= https://audiovideomerger.koman.app/appcast-x86_64.xml
 
 # Default target
 all: setup build

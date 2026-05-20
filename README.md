@@ -12,9 +12,9 @@ AudioVideoMerger is an open source one-trick pony for painlessly replacing audio
 - **Batch-ready**: Automatically creates every video/audio combination when dropping multiple files.
 - **Self-contained**: Uses bundled FFmpeg binaries, so easy to install.
 
-## [Download](https://audiovideomerger.github.io)
+## [Download](https://audiovideomerger.koman.app)
 
-Downloads are available from the project website: [audiovideomerger.github.io](https://audiovideomerger.github.io)
+Downloads are available from the project website: [audiovideomerger.koman.app](https://audiovideomerger.koman.app)
 
 ## In action
 
