@@ -105,6 +105,11 @@ jobs:
       cancel-in-progress: true
     steps:
 
+      - name: Check out source repo
+        uses: actions/checkout@v6
+        with:
+          path: source-repo
+
       - name: Check out target repo
         uses: actions/checkout@v6
         with:
@@ -121,15 +126,16 @@ jobs:
       - name: Replace published files
         run: |
           set -euo pipefail
-          if [ "${IS_RELEASE}" = "true" ]; then
-            rsync -a --delete --exclude '.git/' public/ target-repo/
-          else
-            rsync -a --delete \
-              --exclude '.git/' \
-              --exclude 'appcast-arm64.xml' \
-              --exclude 'appcast-x86_64.xml' \
-              public/ target-repo/
-          fi
+          find target-repo -mindepth 1 -maxdepth 1 \
+            ! -name '.git' \
+            ! -name 'appcast-arm64.xml' \
+            ! -name 'appcast-x86_64.xml' \
+            -exec rm -rf {} +
+
+          cp public/appcast-arm64.xml target-repo/appcast-arm64.xml
+          cp public/appcast-x86_64.xml target-repo/appcast-x86_64.xml
+          cp source-repo/.github/legacy-site/index.html target-repo/index.html
+          cp source-repo/.github/legacy-site/404.html target-repo/404.html
 
       - name: Commit and push
         working-directory: ./target-repo
