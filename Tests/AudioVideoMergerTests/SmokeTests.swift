@@ -98,4 +98,49 @@ final class SmokeTests: XCTestCase {
             "BrandA_Campaign_Blue_Jeans_924_Voiceover_v1.wav"
         )
     }
+
+    func testFilePairingMatcherFindsExpectedPairsForSharedLabelWithTechnicalSuffixes() {
+        let matcher = FilePairingMatcher()
+
+        let audios = [
+            URL(fileURLWithPath: "/tmp/Studio_Sunrise_GARDEN_V3.wav"),
+            URL(fileURLWithPath: "/tmp/Studio_Sunrise_STUDENT_V3.wav"),
+            URL(fileURLWithPath: "/tmp/Studio_Sunrise_NEIGHBORS_V3.wav"),
+            URL(fileURLWithPath: "/tmp/Studio_Sunrise_BICYCLE_V4.wav")
+        ]
+        let videos = [
+            URL(fileURLWithPath: "/tmp/NEIGHBORS 30 16x9_converted_syncfix.mp4"),
+            URL(fileURLWithPath: "/tmp/STUDENT 30 16x9_converted_syncfix.mp4"),
+            URL(fileURLWithPath: "/tmp/GARDEN 30  16x9_converted_syncfix.mp4"),
+            URL(fileURLWithPath: "/tmp/BICYCLE 30 16x9_converted_syncfix.mp4")
+        ]
+
+        let pairs = matcher.suggestedPairs(videos: videos, audios: audios)
+
+        XCTAssertNotNil(pairs)
+        XCTAssertEqual(pairs?.count, 4)
+
+        let pairedByVideoName = Dictionary(
+            uniqueKeysWithValues: (pairs ?? []).map {
+                ($0.videoURL.lastPathComponent, $0.audioURL.lastPathComponent)
+            }
+        )
+
+        XCTAssertEqual(
+            pairedByVideoName["NEIGHBORS 30 16x9_converted_syncfix.mp4"],
+            "Studio_Sunrise_NEIGHBORS_V3.wav"
+        )
+        XCTAssertEqual(
+            pairedByVideoName["STUDENT 30 16x9_converted_syncfix.mp4"],
+            "Studio_Sunrise_STUDENT_V3.wav"
+        )
+        XCTAssertEqual(
+            pairedByVideoName["GARDEN 30  16x9_converted_syncfix.mp4"],
+            "Studio_Sunrise_GARDEN_V3.wav"
+        )
+        XCTAssertEqual(
+            pairedByVideoName["BICYCLE 30 16x9_converted_syncfix.mp4"],
+            "Studio_Sunrise_BICYCLE_V4.wav"
+        )
+    }
 }

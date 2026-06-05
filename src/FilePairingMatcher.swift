@@ -50,6 +50,8 @@ struct FilePairingMatcher {
       videoNames: Array(normalizedVideos.values),
       audioNames: Array(normalizedAudios.values)
     )
+    let videoTokenCounts = tokenCounts(Array(normalizedVideos.values))
+    let audioTokenCounts = tokenCounts(Array(normalizedAudios.values))
 
     var candidates: [PairingCandidate] = []
     for videoURL in videos {
@@ -63,7 +65,9 @@ struct FilePairingMatcher {
         let score = fuzzyPairScore(
           normalizedVideo: normalizedVideo,
           normalizedAudio: normalizedAudio,
-          tokenWeights: tokenWeights
+          tokenWeights: tokenWeights,
+          videoTokenCounts: videoTokenCounts,
+          audioTokenCounts: audioTokenCounts
         )
         candidates.append(PairingCandidate(videoURL: videoURL, audioURL: audioURL, score: score))
       }
@@ -112,7 +116,9 @@ struct FilePairingMatcher {
         fuzzyPairScore(
           normalizedVideo: normalizedVideo,
           normalizedAudio: normalizedAudio,
-          tokenWeights: tokenWeights
+          tokenWeights: tokenWeights,
+          videoTokenCounts: videoTokenCounts,
+          audioTokenCounts: audioTokenCounts
         )
       )
     }
@@ -157,12 +163,24 @@ struct FilePairingMatcher {
   private func fuzzyPairScore(
     normalizedVideo: NormalizedFileName,
     normalizedAudio: NormalizedFileName,
-    tokenWeights: [String: Double]
+    tokenWeights: [String: Double],
+    videoTokenCounts: [String: Int],
+    audioTokenCounts: [String: Int]
   ) -> Double {
-    let tokenScore = tokenSimilarity(
+    let baseTokenScore = tokenSimilarity(
       lhs: normalizedVideo.tokens,
       rhs: normalizedAudio.tokens,
       tokenWeights: tokenWeights
+    )
+    let tokenScore = max(
+      baseTokenScore,
+      exclusiveSharedTokenScore(
+        lhs: normalizedVideo.tokens,
+        rhs: normalizedAudio.tokens,
+        tokenWeights: tokenWeights,
+        videoTokenCounts: videoTokenCounts,
+        audioTokenCounts: audioTokenCounts
+      )
     )
     let distanceScore = normalizedEditSimilarity(
       lhs: normalizedVideo.compactName, rhs: normalizedAudio.compactName)
@@ -212,6 +230,18 @@ struct FilePairingMatcher {
     return weights
   }
 
+  private func tokenCounts(_ names: [NormalizedFileName]) -> [String: Int] {
+    var counts: [String: Int] = [:]
+
+    for name in names {
+      for token in Set(name.tokens) {
+        counts[token, default: 0] += 1
+      }
+    }
+
+    return counts
+  }
+
   private func tokenSimilarity(lhs: [String], rhs: [String], tokenWeights: [String: Double])
     -> Double
   {
@@ -239,6 +269,50 @@ struct FilePairingMatcher {
     let jaccard = intersectionWeight / unionWeight
     let containment = minSideWeight > 0 ? intersectionWeight / minSideWeight : 0
     return jaccard * 0.45 + containment * 0.55
+  }
+
+  private func exclusiveSharedTokenScore(
+    lhs: [String],
+    rhs: [String],
+    tokenWeights: [String: Double],
+    videoTokenCounts: [String: Int],
+    audioTokenCounts: [String: Int]
+  ) -> Double {
+    let lhsSet = Set(lhs)
+    let rhsSet = Set(rhs)
+    let sharedExclusiveWeight = lhsSet.intersection(rhsSet).reduce(0.0) { result, token in
+      guard videoTokenCounts[token] == 1, audioTokenCounts[token] == 1 else {
+        return result
+      }
+
+      return max(result, tokenWeights[token] ?? 1)
+    }
+
+    guard sharedExclusiveWeight > 0 else {
+      return 0
+    }
+
+    let videoDistinctiveWeight = lhsSet.reduce(0.0) { result, token in
+      guard videoTokenCounts[token] == 1 else {
+        return result
+      }
+
+      return max(result, tokenWeights[token] ?? 1)
+    }
+    let audioDistinctiveWeight = rhsSet.reduce(0.0) { result, token in
+      guard audioTokenCounts[token] == 1 else {
+        return result
+      }
+
+      return max(result, tokenWeights[token] ?? 1)
+    }
+    let maxDistinctiveWeight = max(videoDistinctiveWeight, audioDistinctiveWeight)
+
+    guard maxDistinctiveWeight > 0 else {
+      return 0
+    }
+
+    return sharedExclusiveWeight / maxDistinctiveWeight
   }
 
   private func normalizedEditSimilarity(lhs: String, rhs: String) -> Double {
