@@ -15,6 +15,7 @@ enum ProgressOutcome {
   case none
   case success
   case failure
+  case cancelled
 }
 
 @MainActor
@@ -34,23 +35,9 @@ final class DropViewModel: ObservableObject {
   @Published var unrecognizedFilesMessage = ""
   @Published var progressOutcome: ProgressOutcome = .none
 
-  private let ffmpegProcessor = SimpleFFmpegProcessor()
-  private let pairingMatcher = FilePairingMatcher()
-  private var overwriteAllExistingFiles = false
-
-  private var jobWeightsBytes: [Double] = []
-  private var totalWeightBytes: Double = 1
-  private var completedWeightBytes: Double = 0
+  private let batchConversion = BatchConversion()
   private var shouldShowJobIndex = false
-  private var activeProgressToken = UUID()
-  private var lastLocalProgressForActiveJob: Double = 0
-
-  private typealias Job = (videoURL: URL, audioURL: URL, outputURL: URL)
-
-  private enum JobCreationMode {
-    case allCombinations
-    case suggestedPairs([(videoURL: URL, audioURL: URL)])
-  }
+  private var isCancellingConversion = false
 
   private var isAppBundle: Bool {
     Bundle.main.bundleURL.pathExtension == "app"
@@ -95,6 +82,10 @@ final class DropViewModel: ObservableObject {
     }
 
     return "\(min(currentJobIndex + 1, totalJobs))/\(totalJobs)"
+  }
+
+  var canCancelConversion: Bool {
+    isProcessing && progressOutcome == .none && !isCancellingConversion
   }
 
   func statusSymbolName() -> String? {
@@ -173,18 +164,12 @@ final class DropViewModel: ObservableObject {
   }
 
   private func registerDroppedFiles(urls: [URL]) {
-    let validation = FileValidator.validate(urls: urls)
+    let intakeResult = batchConversion.registerDroppedFiles(urls: urls)
+    droppedVideoURLs = intakeResult.videoURLs
+    droppedAudioURLs = intakeResult.audioURLs
 
-    for url in validation.videoURLs where !droppedVideoURLs.contains(url) {
-      droppedVideoURLs.append(url)
-    }
-
-    for url in validation.audioURLs where !droppedAudioURLs.contains(url) {
-      droppedAudioURLs.append(url)
-    }
-
-    if !validation.unrecognizedURLs.isEmpty {
-      let fileNames = validation.unrecognizedURLs.map(\.lastPathComponent)
+    if !intakeResult.unrecognizedURLs.isEmpty {
+      let fileNames = intakeResult.unrecognizedURLs.map(\.lastPathComponent)
       let visibleNames = fileNames.prefix(5)
       let baseMessage = visibleNames.joined(separator: "\n")
 
@@ -198,12 +183,11 @@ final class DropViewModel: ObservableObject {
       showUnrecognizedFilesAlert = true
     }
 
-    if validation.isValid {
-      let combinations = validation.numVideos
-      print("[DropViewModel] Valid batch detected: \(combinations) output job(s)")
+    if intakeResult.isReady {
+      print("[DropViewModel] Valid batch detected: \(intakeResult.totalJobCount) output job(s)")
     }
 
-    if !droppedVideoURLs.isEmpty && !droppedAudioURLs.isEmpty {
+    if intakeResult.isReady {
       startBatchProcessing()
     }
   }
@@ -211,30 +195,39 @@ final class DropViewModel: ObservableObject {
   private func startBatchProcessing() {
     Task {
       let jobMode = await resolveJobCreationMode()
-      let jobs = createJobs(mode: jobMode)
-      guard !jobs.isEmpty else {
+      let plan = batchConversion.createPlan(mode: jobMode)
+      guard !plan.jobs.isEmpty else {
         return
       }
 
-      totalJobs = jobs.count
+      totalJobs = plan.jobs.count
       currentJobIndex = 0
       successfulJobs = 0
       progress = 0
       currentTask = "Starting batch conversion..."
       progressOutcome = .none
+      isCancellingConversion = false
       isProcessing = true
       shouldShowJobIndex = true
 
-      jobWeightsBytes = createJobWeights(for: jobs)
-      totalWeightBytes = max(jobWeightsBytes.reduce(0, +), 1)
-      completedWeightBytes = 0
-      overwriteAllExistingFiles = false
+      let outcome = await batchConversion.run(
+        plan: plan,
+        overwriteDecision: { [weak self] outputURL in
+          guard let self else { return .stop }
+          return await self.confirmOverwriteIfNeeded(for: outputURL)
+        },
+        progressUpdate: { [weak self] runProgress in
+          Task { @MainActor in
+            self?.handleProgressUpdate(runProgress)
+          }
+        }
+      )
 
-      await processJobs(jobs)
+      finishBatchProcessing(outcome: outcome)
     }
   }
 
-  private func resolveJobCreationMode() async -> JobCreationMode {
+  private func resolveJobCreationMode() async -> BatchConversionJobMode {
     guard let suggestedPairs = suggestedPairingsIfConfident() else {
       return .allCombinations
     }
@@ -256,171 +249,35 @@ final class DropViewModel: ObservableObject {
     return .allCombinations
   }
 
-  private func configureProgressHandler(forJobAt index: Int) {
-    let token = UUID()
-    activeProgressToken = token
-    lastLocalProgressForActiveJob = 0
-
-    ffmpegProcessor.onProgressUpdate = { [weak self] localProgress, task in
-      Task { @MainActor in
-        self?.handleProgressUpdate(
-          localProgress: localProgress,
-          task: task,
-          token: token,
-          index: index
-        )
-      }
-    }
-  }
-
-  private func handleProgressUpdate(localProgress: Double, task: String, token: UUID, index: Int) {
-    guard token == activeProgressToken, index == currentJobIndex else {
+  func cancelConversion() {
+    guard canCancelConversion else {
       return
     }
 
-    let normalizedLocalProgress = min(max(localProgress, 0), 1)
-    let monotonicLocalProgress = max(lastLocalProgressForActiveJob, normalizedLocalProgress)
-    lastLocalProgressForActiveJob = monotonicLocalProgress
-
-    let currentWeight = weightForJob(at: currentJobIndex)
-    let weightedProgress =
-      (completedWeightBytes + monotonicLocalProgress * currentWeight) / totalWeightBytes
-    progress = min(max(weightedProgress, 0), 1)
-    currentTask = task
+    isCancellingConversion = true
+    currentTask = "Cancelling..."
+    batchConversion.cancel()
   }
 
-  private func createJobs(mode: JobCreationMode) -> [Job] {
-    var jobs: [Job] = []
-
-    switch mode {
-    case .allCombinations:
-      for videoURL in droppedVideoURLs {
-        for audioURL in droppedAudioURLs {
-          let outputURL = createCombinedOutputPath(videoURL: videoURL, audioURL: audioURL)
-          jobs.append((videoURL: videoURL, audioURL: audioURL, outputURL: outputURL))
-        }
-      }
-    case .suggestedPairs(let pairs):
-      for pair in pairs {
-        let outputURL = createPairedOutputPath(videoURL: pair.videoURL, audioURL: pair.audioURL)
-        jobs.append((videoURL: pair.videoURL, audioURL: pair.audioURL, outputURL: outputURL))
-      }
+  private func handleProgressUpdate(_ runProgress: BatchConversionRunProgress) {
+    if !isCancellingConversion {
+      progress = runProgress.progress
+      currentTask = runProgress.currentTask
     }
-
-    return jobs
+    currentJobIndex = runProgress.currentJobIndex
+    totalJobs = runProgress.totalJobs
+    successfulJobs = runProgress.successfulJobs
   }
 
-  private func createCombinedOutputPath(videoURL: URL, audioURL: URL) -> URL {
-    let audioDirectory = audioURL.deletingLastPathComponent()
-    let audioNameWithoutExtension = audioURL.deletingPathExtension().lastPathComponent
-    let videoNameWithoutExtension = videoURL.deletingPathExtension().lastPathComponent
-    let videoExtension = videoURL.pathExtension
-
-    let outputFilename: String
-    if droppedVideoURLs.count == 1 {
-      outputFilename = "\(audioNameWithoutExtension).\(videoExtension)"
-    } else if droppedAudioURLs.count == 1 {
-      outputFilename =
-        "\(videoNameWithoutExtension)_\(audioNameWithoutExtension).\(videoExtension)"
-    } else {
-      outputFilename =
-        "\(videoNameWithoutExtension)_\(audioNameWithoutExtension).\(videoExtension)"
-    }
-
-    return audioDirectory.appendingPathComponent(outputFilename)
+  private func suggestedPairingsIfConfident() -> [BatchConversionPair]? {
+    batchConversion.suggestedPairingsIfConfident()
   }
 
-  private func createPairedOutputPath(videoURL: URL, audioURL: URL) -> URL {
-    let audioDirectory = audioURL.deletingLastPathComponent()
-    let audioNameWithoutExtension = audioURL.deletingPathExtension().lastPathComponent
-    let videoExtension = videoURL.pathExtension
-    let outputFilename = "\(audioNameWithoutExtension).\(videoExtension)"
-    return audioDirectory.appendingPathComponent(outputFilename)
-  }
-
-  private func suggestedPairingsIfConfident() -> [(videoURL: URL, audioURL: URL)]? {
-    pairingMatcher.suggestedPairs(videos: droppedVideoURLs, audios: droppedAudioURLs)
-  }
-
-  private func createJobWeights(for jobs: [(videoURL: URL, audioURL: URL, outputURL: URL)])
-    -> [Double]
+  private func confirmOverwriteIfNeeded(for outputURL: URL) async
+    -> BatchConversionOverwriteDecision
   {
-    jobs.map { job in
-      let videoBytes = fileSizeInBytes(for: job.videoURL)
-      let audioBytes = fileSizeInBytes(for: job.audioURL)
-      return max(videoBytes + audioBytes, 1)
-    }
-  }
-
-  private func fileSizeInBytes(for url: URL) -> Double {
-    do {
-      let attributes = try FileManager.default.attributesOfItem(atPath: url.path)
-
-      if let byteCount = attributes[.size] as? NSNumber {
-        return byteCount.doubleValue
-      }
-
-      if let byteCount = attributes[.size] as? Int {
-        return Double(byteCount)
-      }
-    } catch {
-      return 1
-    }
-
-    return 1
-  }
-
-  private func weightForJob(at index: Int) -> Double {
-    guard index >= 0 && index < jobWeightsBytes.count else {
-      return 1
-    }
-    return max(jobWeightsBytes[index], 1)
-  }
-
-  private func processJobs(_ jobs: [(videoURL: URL, audioURL: URL, outputURL: URL)]) async {
-    for index in jobs.indices {
-      currentJobIndex = index
-      configureProgressHandler(forJobAt: index)
-      let job = jobs[index]
-
-      let shouldProceed = await confirmOverwriteIfNeeded(for: job.outputURL)
-      if !shouldProceed {
-        finishBatchProcessing(showCompletionMessage: false)
-        return
-      }
-
-      let result = await runJob(job)
-      if case .success = result {
-        successfulJobs += 1
-      }
-
-      completedWeightBytes += weightForJob(at: index)
-    }
-
-    finishBatchProcessing(showCompletionMessage: true)
-  }
-
-  private func runJob(_ job: (videoURL: URL, audioURL: URL, outputURL: URL)) async -> Result<
-    URL, Error
-  > {
-    await withCheckedContinuation { continuation in
-      ffmpegProcessor.processVideoAudio(
-        videoURL: job.videoURL,
-        audioURL: job.audioURL,
-        outputURL: job.outputURL
-      ) { result in
-        continuation.resume(returning: result)
-      }
-    }
-  }
-
-  private func confirmOverwriteIfNeeded(for outputURL: URL) async -> Bool {
-    if overwriteAllExistingFiles {
-      return true
-    }
-
-    guard FileManager.default.fileExists(atPath: outputURL.path) else {
-      return true
+    guard batchConversion.fileExists(at: outputURL) else {
+      return .overwrite
     }
 
     let alert = NSAlert()
@@ -434,39 +291,51 @@ final class DropViewModel: ObservableObject {
 
     let response = alert.runModal()
     if response == .alertFirstButtonReturn {
-      return true
+      return .overwrite
     }
     if response == .alertSecondButtonReturn {
-      overwriteAllExistingFiles = true
-      return true
+      return .overwriteAll
     }
-    return false
+    return .stop
   }
 
-  private func finishBatchProcessing(showCompletionMessage: Bool) {
-    if showCompletionMessage {
-      let hasFailures = successfulJobs < totalJobs
-      let videoLabel = successfulJobs == 1 ? "video" : "videos"
+  private func finishBatchProcessing(outcome: BatchConversionRunOutcome) {
+    let shouldNotify: Bool
+    switch outcome {
+    case .completed(let processed, let total, _):
+      successfulJobs = processed
+      totalJobs = total
+      let hasFailures = processed < total
+      let videoLabel = processed == 1 ? "video" : "videos"
       progress = 1
       currentTask =
         hasFailures
-        ? "Failed. Created \(successfulJobs) \(videoLabel)"
-        : "Done! Created \(successfulJobs) \(videoLabel)"
+        ? "Failed. Created \(processed) \(videoLabel)" : "Done! Created \(processed) \(videoLabel)"
       progressOutcome = hasFailures ? .failure : .success
-      shouldShowJobIndex = false
-      sendCompletionNotification(
-        processed: successfulJobs, total: totalJobs, hasFailures: hasFailures)
-
-      Task {
-        try? await Task.sleep(nanoseconds: 2_000_000_000)
-        await MainActor.run {
-          self.resetProcessingState()
-        }
-      }
-      return
+      shouldNotify = true
+    case .cancelled(let processed, let total, _):
+      successfulJobs = processed
+      totalJobs = total
+      let videoLabel = processed == 1 ? "video" : "videos"
+      currentTask = "Cancelled. Created \(processed) \(videoLabel)"
+      progressOutcome = .cancelled
+      shouldNotify = false
     }
 
-    resetProcessingState()
+    shouldShowJobIndex = false
+
+    if shouldNotify {
+      let hasFailures = successfulJobs < totalJobs
+      sendCompletionNotification(
+        processed: successfulJobs, total: totalJobs, hasFailures: hasFailures)
+    }
+
+    Task {
+      try? await Task.sleep(nanoseconds: 2_000_000_000)
+      await MainActor.run {
+        self.resetProcessingState()
+      }
+    }
   }
 
   private func sendCompletionNotification(processed: Int, total: Int, hasFailures: Bool) {
@@ -504,6 +373,7 @@ final class DropViewModel: ObservableObject {
     progress = 0
     currentTask = ""
     progressOutcome = .none
+    isCancellingConversion = false
     showUnrecognizedFilesAlert = false
     unrecognizedFilesMessage = ""
     shouldShowJobIndex = false
@@ -511,14 +381,8 @@ final class DropViewModel: ObservableObject {
     totalJobs = 0
     successfulJobs = 0
 
-    jobWeightsBytes.removeAll()
-    totalWeightBytes = 1
-    completedWeightBytes = 0
-    overwriteAllExistingFiles = false
-    activeProgressToken = UUID()
-    lastLocalProgressForActiveJob = 0
-
     droppedVideoURLs.removeAll()
     droppedAudioURLs.removeAll()
+    batchConversion.reset()
   }
 }

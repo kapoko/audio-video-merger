@@ -23,6 +23,14 @@ struct ContentView: View {
             .padding(.bottom, 12)
 
           processingStatusRow
+
+          if viewModel.canCancelConversion {
+            Button("Cancel") {
+              viewModel.cancelConversion()
+            }
+            .buttonStyle(.bordered)
+            .keyboardShortcut(.cancelAction)
+          }
         }
         .frame(maxWidth: .infinity)
         .padding(.horizontal, 24)
@@ -119,6 +127,10 @@ struct ContentView: View {
     case .failure:
       Image(systemName: "xmark.circle.fill")
         .foregroundColor(.red)
+        .frame(width: 14, height: 14)
+    case .cancelled:
+      Image(systemName: "stop.circle.fill")
+        .foregroundColor(.secondary)
         .frame(width: 14, height: 14)
     }
   }

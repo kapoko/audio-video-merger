@@ -1,7 +1,35 @@
 import Darwin
 import Foundation
 
-class SimpleFFmpegProcessor {
+final class SimpleFFmpegProcessHandle: BatchConversionCancellableProcess {
+  private let lock = NSLock()
+  private var process: Process?
+  private var isCancelled = false
+
+  func setProcess(_ process: Process) -> Bool {
+    lock.lock()
+    defer { lock.unlock() }
+
+    if isCancelled {
+      process.terminate()
+      return false
+    }
+
+    self.process = process
+    return true
+  }
+
+  func cancel() {
+    lock.lock()
+    isCancelled = true
+    let process = process
+    lock.unlock()
+
+    process?.terminate()
+  }
+}
+
+class SimpleFFmpegProcessor: BatchConversionFFmpegProcessor {
 
   enum ProcessingError: Error {
     case ffmpegNotFound
@@ -28,11 +56,37 @@ class SimpleFFmpegProcessor {
     videoURL: URL, audioURL: URL, outputURL: URL,
     completion: @escaping (Result<URL, Error>) -> Void
   ) {
+    _ = processVideoAudio(
+      videoURL: videoURL,
+      audioURL: audioURL,
+      outputURL: outputURL,
+      onProgressUpdate: { [weak self] progress, task in
+        self?.onProgressUpdate?(progress, task)
+      },
+      completion: completion
+    )
+  }
+
+  @discardableResult
+  func processVideoAudio(
+    videoURL: URL,
+    audioURL: URL,
+    outputURL: URL,
+    onProgressUpdate: @escaping (Double, String) -> Void,
+    completion: @escaping (Result<URL, Error>) -> Void
+  ) -> BatchConversionCancellableProcess {
+    let handle = SimpleFFmpegProcessHandle()
     DispatchQueue.global(qos: .userInitiated).async {
       self.executeFFmpeg(
-        videoURL: videoURL, audioURL: audioURL, outputURL: outputURL, completion: completion
+        videoURL: videoURL,
+        audioURL: audioURL,
+        outputURL: outputURL,
+        handle: handle,
+        onProgressUpdate: onProgressUpdate,
+        completion: completion
       )
     }
+    return handle
   }
 
   private func createOutputPath(from audioURL: URL, videoURL: URL) -> URL {
@@ -46,6 +100,8 @@ class SimpleFFmpegProcessor {
 
   private func executeFFmpeg(
     videoURL: URL, audioURL: URL, outputURL: URL,
+    handle: SimpleFFmpegProcessHandle,
+    onProgressUpdate: @escaping (Double, String) -> Void,
     completion: @escaping (Result<URL, Error>) -> Void
   ) {
     let ffmpegPath = getFFmpegPath()
@@ -63,16 +119,20 @@ class SimpleFFmpegProcessor {
 
     runFFmpegConversion(
       ffmpegPath: ffmpegPath, videoURL: videoURL, audioURL: audioURL, outputURL: outputURL,
+      handle: handle,
+      onProgressUpdate: onProgressUpdate,
       completion: completion)
   }
 
   private func runFFmpegConversion(
     ffmpegPath: String, videoURL: URL, audioURL: URL, outputURL: URL,
+    handle: SimpleFFmpegProcessHandle,
+    onProgressUpdate: @escaping (Double, String) -> Void,
     completion: @escaping (Result<URL, Error>) -> Void
   ) {
     log("Starting conversion pipeline")
     DispatchQueue.main.async {
-      self.onProgressUpdate?(0.0, "Converting...")
+      onProgressUpdate(0.0, "Converting...")
     }
 
     // First get the duration of the video file
@@ -116,6 +176,7 @@ class SimpleFFmpegProcessor {
       DispatchQueue.global(qos: .userInitiated).async {
         do {
           try process.run()
+          _ = handle.setProcess(process)
           self.log("FFmpeg process started")
           stderrPipe.fileHandleForWriting.closeFile()
 
@@ -126,7 +187,7 @@ class SimpleFFmpegProcessor {
               continue
             }
             if let output = String(data: data, encoding: .utf8) {
-              self.parseProgress(from: output)
+              self.parseProgress(from: output, onProgressUpdate: onProgressUpdate)
             }
           }
 
@@ -134,7 +195,7 @@ class SimpleFFmpegProcessor {
           if let trailingOutput = String(data: trailingData, encoding: .utf8),
             !trailingOutput.isEmpty
           {
-            self.parseProgress(from: trailingOutput)
+            self.parseProgress(from: trailingOutput, onProgressUpdate: onProgressUpdate)
             self.log(
               "Final FFmpeg stderr: \(trailingOutput.trimmingCharacters(in: .whitespacesAndNewlines))"
             )
@@ -145,23 +206,16 @@ class SimpleFFmpegProcessor {
 
           DispatchQueue.main.async {
             if process.terminationStatus == 0 {
-              self.onProgressUpdate?(1.0, "Complete!")
+              onProgressUpdate(1.0, "Complete!")
 
               if FileManager.default.fileExists(atPath: outputURL.path) {
-                self.showNotification(
-                  title: "Conversion Complete",
-                  body: "Video saved to \(outputURL.lastPathComponent)")
                 self.log("Output file created successfully")
                 completion(.success(outputURL))
               } else {
-                self.showNotification(
-                  title: "Conversion Failed", body: "Output file was not created")
                 self.log("FFmpeg succeeded but output file was not found")
                 completion(.failure(ProcessingError.processingFailed))
               }
             } else {
-              self.showNotification(
-                title: "Conversion Failed", body: "FFmpeg process failed")
               self.log("FFmpeg reported failure")
               completion(.failure(ProcessingError.processingFailed))
             }
@@ -244,7 +298,10 @@ class SimpleFFmpegProcessor {
     return 60.0  // Default fallback
   }
 
-  private func parseProgress(from ffmpegOutput: String) {
+  private func parseProgress(
+    from ffmpegOutput: String,
+    onProgressUpdate: @escaping (Double, String) -> Void
+  ) {
     // Supports both classic ffmpeg stderr status lines (time=)
     // and key/value progress output (-progress pipe:2 with out_time* keys).
     let lines = ffmpegOutput.components(separatedBy: .newlines)
@@ -256,12 +313,12 @@ class SimpleFFmpegProcessor {
         let value = line.replacingOccurrences(of: "out_time_ms=", with: "")
         if let microseconds = Double(value), microseconds >= 0 {
           let seconds = microseconds / 1_000_000
-          updateProgress(currentTime: seconds)
+          updateProgress(currentTime: seconds, onProgressUpdate: onProgressUpdate)
         }
       } else if line.contains("out_time=") {
         let timestamp = line.replacingOccurrences(of: "out_time=", with: "")
         let seconds = parseTimestampToSeconds(timestamp)
-        updateProgress(currentTime: seconds)
+        updateProgress(currentTime: seconds, onProgressUpdate: onProgressUpdate)
       } else if line.contains("time=") {
         let pattern = "time=(\\d{2}):(\\d{2}):(\\d{2})\\.(\\d{2})"
         guard let regex = try? NSRegularExpression(pattern: pattern) else {
@@ -279,7 +336,7 @@ class SimpleFFmpegProcessor {
             Double((line as NSString).substring(with: match.range(at: 4))) ?? 0
 
           let currentTime = hours * 3600 + minutes * 60 + seconds + centiseconds / 100
-          updateProgress(currentTime: currentTime)
+          updateProgress(currentTime: currentTime, onProgressUpdate: onProgressUpdate)
         }
       }
     }
@@ -296,13 +353,16 @@ class SimpleFFmpegProcessor {
     return hours * 3600 + minutes * 60 + seconds
   }
 
-  private func updateProgress(currentTime: TimeInterval) {
+  private func updateProgress(
+    currentTime: TimeInterval,
+    onProgressUpdate: @escaping (Double, String) -> Void
+  ) {
     guard totalDuration > 0 else { return }
 
     let progress = min(max(currentTime / totalDuration, 0), 0.99)
 
-    DispatchQueue.main.async { [weak self] in
-      self?.onProgressUpdate?(progress, "Converting...")
+    DispatchQueue.main.async {
+      onProgressUpdate(progress, "Converting...")
     }
   }
 
@@ -363,11 +423,4 @@ class SimpleFFmpegProcessor {
     return machine
   }
 
-  private func showNotification(title: String, body: String) {
-    print("\(title): \(body)")
-
-    // For a proper app bundle, we could use NSUserNotification (deprecated)
-    // or UserNotifications (requires proper app bundle with entitlements)
-    // For now, just print to console
-  }
 }
