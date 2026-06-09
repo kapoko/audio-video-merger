@@ -67,7 +67,9 @@ struct FilePairingMatcher {
           normalizedAudio: normalizedAudio,
           tokenWeights: tokenWeights,
           videoTokenCounts: videoTokenCounts,
-          audioTokenCounts: audioTokenCounts
+          audioTokenCounts: audioTokenCounts,
+          videoCount: videoCount,
+          audioCount: audioCount
         )
         candidates.append(PairingCandidate(videoURL: videoURL, audioURL: audioURL, score: score))
       }
@@ -118,7 +120,9 @@ struct FilePairingMatcher {
           normalizedAudio: normalizedAudio,
           tokenWeights: tokenWeights,
           videoTokenCounts: videoTokenCounts,
-          audioTokenCounts: audioTokenCounts
+          audioTokenCounts: audioTokenCounts,
+          videoCount: videoCount,
+          audioCount: audioCount
         )
       )
     }
@@ -165,7 +169,9 @@ struct FilePairingMatcher {
     normalizedAudio: NormalizedFileName,
     tokenWeights: [String: Double],
     videoTokenCounts: [String: Int],
-    audioTokenCounts: [String: Int]
+    audioTokenCounts: [String: Int],
+    videoCount: Int,
+    audioCount: Int
   ) -> Double {
     let baseTokenScore = tokenSimilarity(
       lhs: normalizedVideo.tokens,
@@ -180,6 +186,15 @@ struct FilePairingMatcher {
         tokenWeights: tokenWeights,
         videoTokenCounts: videoTokenCounts,
         audioTokenCounts: audioTokenCounts
+      ),
+      compoundSharedTokenScore(
+        lhs: normalizedVideo.tokens,
+        rhs: normalizedAudio.tokens,
+        tokenWeights: tokenWeights,
+        videoTokenCounts: videoTokenCounts,
+        audioTokenCounts: audioTokenCounts,
+        videoCount: videoCount,
+        audioCount: audioCount
       )
     )
     let distanceScore = normalizedEditSimilarity(
@@ -313,6 +328,43 @@ struct FilePairingMatcher {
     }
 
     return sharedExclusiveWeight / maxDistinctiveWeight
+  }
+
+  private func compoundSharedTokenScore(
+    lhs: [String],
+    rhs: [String],
+    tokenWeights: [String: Double],
+    videoTokenCounts: [String: Int],
+    audioTokenCounts: [String: Int],
+    videoCount: Int,
+    audioCount: Int
+  ) -> Double {
+    let lhsSet = Set(lhs)
+    let rhsSet = Set(rhs)
+    let lhsDistinctiveTokens = lhsSet.filter { (videoTokenCounts[$0] ?? 0) < videoCount }
+    let rhsDistinctiveTokens = rhsSet.filter { (audioTokenCounts[$0] ?? 0) < audioCount }
+    let sharedDistinctiveTokens = lhsDistinctiveTokens.intersection(rhsDistinctiveTokens)
+
+    guard sharedDistinctiveTokens.count > 1 else {
+      return 0
+    }
+
+    let sharedWeight = sharedDistinctiveTokens.reduce(0.0) { result, token in
+      result + (tokenWeights[token] ?? 1)
+    }
+    let videoDistinctiveWeight = lhsDistinctiveTokens.reduce(0.0) { result, token in
+      result + (tokenWeights[token] ?? 1)
+    }
+    let audioDistinctiveWeight = rhsDistinctiveTokens.reduce(0.0) { result, token in
+      result + (tokenWeights[token] ?? 1)
+    }
+    let maxDistinctiveWeight = max(videoDistinctiveWeight, audioDistinctiveWeight)
+
+    guard maxDistinctiveWeight > 0 else {
+      return 0
+    }
+
+    return sharedWeight / maxDistinctiveWeight
   }
 
   private func normalizedEditSimilarity(lhs: String, rhs: String) -> Double {

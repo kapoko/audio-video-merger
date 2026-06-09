@@ -143,4 +143,61 @@ final class SmokeTests: XCTestCase {
             "Studio_Sunrise_BICYCLE_V4.wav"
         )
     }
+
+    func testFilePairingMatcherFindsExpectedPairsForSharedLabelAndDuration() {
+        let matcher = FilePairingMatcher()
+
+        let audios = [
+            URL(fileURLWithPath: "/tmp/BrandZ_Orchard_BRIDGE_8_V1.wav"),
+            URL(fileURLWithPath: "/tmp/BrandZ_Orchard_BRIDGE_20_V1.wav"),
+            URL(fileURLWithPath: "/tmp/BrandZ_Orchard_RIVER_8_V1.wav"),
+            URL(fileURLWithPath: "/tmp/BrandZ_Orchard_RIVER_20_V1.wav"),
+            URL(fileURLWithPath: "/tmp/BrandZ_Orchard_MARKET_8_V1.wav"),
+            URL(fileURLWithPath: "/tmp/BrandZ_Orchard_MARKET_20_V1.wav")
+        ]
+        let videos = [
+            URL(fileURLWithPath: "/tmp/River 20 16x9 EDIT_v1_converted_syncfix.mp4"),
+            URL(fileURLWithPath: "/tmp/River 8 16x9 EDIT_v1_converted_syncfix.mp4"),
+            URL(fileURLWithPath: "/tmp/Bridge 20 16x9 EDIT_v1_converted_syncfix.mp4"),
+            URL(fileURLWithPath: "/tmp/Market 20 16x9 EDIT_v1_converted_syncfix.mp4"),
+            URL(fileURLWithPath: "/tmp/Bridge 8 16x9 EDIT_v1_converted_syncfix.mp4"),
+            URL(fileURLWithPath: "/tmp/Market 8 16x9 EDIT_v1_converted_syncfix.mp4")
+        ]
+
+        let pairs = matcher.suggestedPairs(videos: videos, audios: audios)
+
+        XCTAssertNotNil(pairs)
+        XCTAssertEqual(pairs?.count, 6)
+
+        let pairedByVideoName = Dictionary(
+            uniqueKeysWithValues: (pairs ?? []).map {
+                ($0.videoURL.lastPathComponent, $0.audioURL.lastPathComponent)
+            }
+        )
+
+        XCTAssertEqual(
+            pairedByVideoName["River 20 16x9 EDIT_v1_converted_syncfix.mp4"],
+            "BrandZ_Orchard_RIVER_20_V1.wav"
+        )
+        XCTAssertEqual(
+            pairedByVideoName["River 8 16x9 EDIT_v1_converted_syncfix.mp4"],
+            "BrandZ_Orchard_RIVER_8_V1.wav"
+        )
+        XCTAssertEqual(
+            pairedByVideoName["Bridge 20 16x9 EDIT_v1_converted_syncfix.mp4"],
+            "BrandZ_Orchard_BRIDGE_20_V1.wav"
+        )
+        XCTAssertEqual(
+            pairedByVideoName["Market 20 16x9 EDIT_v1_converted_syncfix.mp4"],
+            "BrandZ_Orchard_MARKET_20_V1.wav"
+        )
+        XCTAssertEqual(
+            pairedByVideoName["Bridge 8 16x9 EDIT_v1_converted_syncfix.mp4"],
+            "BrandZ_Orchard_BRIDGE_8_V1.wav"
+        )
+        XCTAssertEqual(
+            pairedByVideoName["Market 8 16x9 EDIT_v1_converted_syncfix.mp4"],
+            "BrandZ_Orchard_MARKET_8_V1.wav"
+        )
+    }
 }
